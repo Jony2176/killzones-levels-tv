@@ -33,9 +33,9 @@ asia_color      = input.color(#AA00FF, "Session Color", group="🇯🇵 Asia")
 // ─────────────────────────────────────────────────────────────────────────────
 
 show_pdhl    = input.bool(true, "Show PDH / PDL", group="📊 Levels")
-pdh_color    = input.color(color.new(#FFB74D, 35), "PDH / PDL Color", group="📊 Levels")
+pdh_color    = input.color(color.new(#00BCD4, 35), "PDH / PDL Color", group="📊 Levels")
 show_pwhl    = input.bool(true, "Show PWH / PWL", group="📊 Levels")
-pwh_color    = input.color(color.new(#F06292, 35), "PWH / PWL Color", group="📊 Levels")
+pwh_color    = input.color(color.new(#E91E63, 35), "PWH / PWL Color", group="📊 Levels")
 
 // ─────────────────────────────────────────────────────────────────────────────
 // INPUTS — Display
@@ -60,7 +60,7 @@ extend_bars       = input.int(20, "Extend Lines (bars)", minval=0, maxval=100, g
 // Full sessions (market hours)
 is_full_london = not na(time(timeframe.period, "0800-1200", "Europe/London"))
 is_full_ny     = not na(time(timeframe.period, "0800-1300", "America/New_York"))
-is_full_asia   = not na(time(timeframe.period, "0800-1600", "Asia/Tokyo"))
+is_full_asia   = not na(time(timeframe.period, "0800-1400", "Asia/Tokyo"))
 
 // Killzones (user's trading windows within each session)
 is_kz_london = not na(time(timeframe.period, "0800-1000", "Europe/London"))
@@ -87,9 +87,9 @@ kz_asia_end     = not is_kz_asia and is_kz_asia[1]
 // KILLZONE HIGHLIGHT — Subtle bgcolor for trading windows
 // ─────────────────────────────────────────────────────────────────────────────
 
-bgcolor(show_london and is_kz_london ? color.new(london_color, 96) : na, title="London KZ")
-bgcolor(show_ny     and is_kz_ny     ? color.new(ny_color, 96)     : na, title="NY KZ")
-bgcolor(show_asia   and is_kz_asia   ? color.new(asia_color, 96)   : na, title="Asia KZ")
+bgcolor(show_london and is_kz_london ? color.new(london_color, 92) : na, title="London KZ")
+bgcolor(show_ny     and is_kz_ny     ? color.new(ny_color, 92)     : na, title="NY KZ")
+bgcolor(show_asia   and is_kz_asia   ? color.new(asia_color, 92)   : na, title="Asia KZ")
 
 // ─────────────────────────────────────────────────────────────────────────────
 // SESSION BOXES — Full session with Hi/Lo tracking
@@ -105,8 +105,8 @@ if show_london
         lon_hi  := high
         lon_lo  := low
         lon_box := box.new(bar_index, high, bar_index, low,
-             border_color=color.new(london_color, 80),
-             bgcolor=color.new(london_color, 97), border_width=1)
+             border_color=color.new(london_color, 70),
+             bgcolor=color.new(london_color, 94), border_width=1)
     if is_full_london
         lon_hi := math.max(lon_hi, high)
         lon_lo := math.min(lon_lo, low)
@@ -125,8 +125,8 @@ if show_ny
         ny_hi  := high
         ny_lo  := low
         ny_box := box.new(bar_index, high, bar_index, low,
-             border_color=color.new(ny_color, 80),
-             bgcolor=color.new(ny_color, 97), border_width=1)
+             border_color=color.new(ny_color, 70),
+             bgcolor=color.new(ny_color, 94), border_width=1)
     if is_full_ny
         ny_hi := math.max(ny_hi, high)
         ny_lo := math.min(ny_lo, low)
@@ -145,8 +145,8 @@ if show_asia
         asia_hi  := high
         asia_lo  := low
         asia_box := box.new(bar_index, high, bar_index, low,
-             border_color=color.new(asia_color, 80),
-             bgcolor=color.new(asia_color, 97), border_width=1)
+             border_color=color.new(asia_color, 70),
+             bgcolor=color.new(asia_color, 94), border_width=1)
     if is_full_asia
         asia_hi := math.max(asia_hi, high)
         asia_lo := math.min(asia_lo, low)
@@ -178,23 +178,23 @@ if show_london and full_london_end
     label.delete(lon_mid_lb)
     if show_session_hl
         lon_hi_ln  := line.new(bar_index, lon_hi, ext_idx, lon_hi,
-             color=color.new(london_color, 60), style=line.style_dashed, width=1)
+             color=color.new(london_color, 45), style=line.style_dashed, width=1)
         lon_lo_ln  := line.new(bar_index, lon_lo, ext_idx, lon_lo,
-             color=color.new(london_color, 60), style=line.style_dashed, width=1)
+             color=color.new(london_color, 45), style=line.style_dashed, width=1)
     if show_session_mid
         lon_mid_ln := line.new(bar_index, lon_mid, ext_idx, lon_mid,
-             color=color.new(london_color, 75), style=line.style_dotted, width=1)
+             color=color.new(london_color, 60), style=line.style_dotted, width=1)
     if show_labels
         if show_session_hl
             lon_hi_lb  := label.new(ext_idx, lon_hi, "LDN H",
-                 color=color.new(color.white, 100), textcolor=color.new(london_color, 55),
+                 color=color.new(color.white, 100), textcolor=color.new(london_color, 40),
                  style=label.style_label_left, size=size.tiny)
             lon_lo_lb  := label.new(ext_idx, lon_lo, "LDN L",
-                 color=color.new(color.white, 100), textcolor=color.new(london_color, 55),
+                 color=color.new(color.white, 100), textcolor=color.new(london_color, 40),
                  style=label.style_label_left, size=size.tiny)
         if show_session_mid
             lon_mid_lb := label.new(ext_idx, lon_mid, "LDN M",
-                 color=color.new(color.white, 100), textcolor=color.new(london_color, 70),
+                 color=color.new(color.white, 100), textcolor=color.new(london_color, 55),
                  style=label.style_label_left, size=size.tiny)
 
 // --- NY Session Hi/Lo ---
@@ -216,23 +216,23 @@ if show_ny and full_ny_end
     label.delete(ny_mid_lb)
     if show_session_hl
         ny_hi_ln  := line.new(bar_index, ny_hi, ext_idx, ny_hi,
-             color=color.new(ny_color, 60), style=line.style_dashed, width=1)
+             color=color.new(ny_color, 45), style=line.style_dashed, width=1)
         ny_lo_ln  := line.new(bar_index, ny_lo, ext_idx, ny_lo,
-             color=color.new(ny_color, 60), style=line.style_dashed, width=1)
+             color=color.new(ny_color, 45), style=line.style_dashed, width=1)
     if show_session_mid
         ny_mid_ln := line.new(bar_index, ny_mid, ext_idx, ny_mid,
-             color=color.new(ny_color, 75), style=line.style_dotted, width=1)
+             color=color.new(ny_color, 60), style=line.style_dotted, width=1)
     if show_labels
         if show_session_hl
             ny_hi_lb  := label.new(ext_idx, ny_hi, "NY H",
-                 color=color.new(color.white, 100), textcolor=color.new(ny_color, 55),
+                 color=color.new(color.white, 100), textcolor=color.new(ny_color, 40),
                  style=label.style_label_left, size=size.tiny)
             ny_lo_lb  := label.new(ext_idx, ny_lo, "NY L",
-                 color=color.new(color.white, 100), textcolor=color.new(ny_color, 55),
+                 color=color.new(color.white, 100), textcolor=color.new(ny_color, 40),
                  style=label.style_label_left, size=size.tiny)
         if show_session_mid
             ny_mid_lb := label.new(ext_idx, ny_mid, "NY M",
-                 color=color.new(color.white, 100), textcolor=color.new(ny_color, 70),
+                 color=color.new(color.white, 100), textcolor=color.new(ny_color, 55),
                  style=label.style_label_left, size=size.tiny)
 
 // --- Asia Session Hi/Lo ---
@@ -254,23 +254,23 @@ if show_asia and full_asia_end
     label.delete(asia_mid_lb)
     if show_session_hl
         asia_hi_ln  := line.new(bar_index, asia_hi, ext_idx, asia_hi,
-             color=color.new(asia_color, 60), style=line.style_dashed, width=1)
+             color=color.new(asia_color, 45), style=line.style_dashed, width=1)
         asia_lo_ln  := line.new(bar_index, asia_lo, ext_idx, asia_lo,
-             color=color.new(asia_color, 60), style=line.style_dashed, width=1)
+             color=color.new(asia_color, 45), style=line.style_dashed, width=1)
     if show_session_mid
         asia_mid_ln := line.new(bar_index, asia_mid, ext_idx, asia_mid,
-             color=color.new(asia_color, 75), style=line.style_dotted, width=1)
+             color=color.new(asia_color, 60), style=line.style_dotted, width=1)
     if show_labels
         if show_session_hl
             asia_hi_lb  := label.new(ext_idx, asia_hi, "ASIA H",
-                 color=color.new(color.white, 100), textcolor=color.new(asia_color, 55),
+                 color=color.new(color.white, 100), textcolor=color.new(asia_color, 40),
                  style=label.style_label_left, size=size.tiny)
             asia_lo_lb  := label.new(ext_idx, asia_lo, "ASIA L",
-                 color=color.new(color.white, 100), textcolor=color.new(asia_color, 55),
+                 color=color.new(color.white, 100), textcolor=color.new(asia_color, 40),
                  style=label.style_label_left, size=size.tiny)
         if show_session_mid
             asia_mid_lb := label.new(ext_idx, asia_mid, "ASIA M",
-                 color=color.new(color.white, 100), textcolor=color.new(asia_color, 70),
+                 color=color.new(color.white, 100), textcolor=color.new(asia_color, 55),
                  style=label.style_label_left, size=size.tiny)
 
 // ─────────────────────────────────────────────────────────────────────────────
