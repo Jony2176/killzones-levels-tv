@@ -92,7 +92,7 @@ bgcolor(show_ny     and is_kz_ny     ? color.new(ny_color, 92)     : na, title="
 bgcolor(show_asia   and is_kz_asia   ? color.new(asia_color, 92)   : na, title="Asia KZ")
 
 // ─────────────────────────────────────────────────────────────────────────────
-// SESSION BOXES — Full session with Hi/Lo tracking
+// SESSION BOXES — Full session with Hi/Lo tracking (borderless)
 // ─────────────────────────────────────────────────────────────────────────────
 
 // --- London Full Session Box ---
@@ -105,8 +105,8 @@ if show_london
         lon_hi  := high
         lon_lo  := low
         lon_box := box.new(bar_index, high, bar_index, low,
-             border_color=color.new(london_color, 70),
-             bgcolor=color.new(london_color, 94), border_width=1)
+             border_color=color.new(london_color, 100),
+             bgcolor=color.new(london_color, 94), border_width=0)
     if is_full_london
         lon_hi := math.max(lon_hi, high)
         lon_lo := math.min(lon_lo, low)
@@ -125,8 +125,8 @@ if show_ny
         ny_hi  := high
         ny_lo  := low
         ny_box := box.new(bar_index, high, bar_index, low,
-             border_color=color.new(ny_color, 70),
-             bgcolor=color.new(ny_color, 94), border_width=1)
+             border_color=color.new(ny_color, 100),
+             bgcolor=color.new(ny_color, 94), border_width=0)
     if is_full_ny
         ny_hi := math.max(ny_hi, high)
         ny_lo := math.min(ny_lo, low)
@@ -145,8 +145,8 @@ if show_asia
         asia_hi  := high
         asia_lo  := low
         asia_box := box.new(bar_index, high, bar_index, low,
-             border_color=color.new(asia_color, 70),
-             bgcolor=color.new(asia_color, 94), border_width=1)
+             border_color=color.new(asia_color, 100),
+             bgcolor=color.new(asia_color, 94), border_width=0)
     if is_full_asia
         asia_hi := math.max(asia_hi, high)
         asia_lo := math.min(asia_lo, low)
