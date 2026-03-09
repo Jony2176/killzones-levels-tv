@@ -92,7 +92,7 @@ bgcolor(show_ny     and is_kz_ny     ? color.new(ny_color, 92)     : na, title="
 bgcolor(show_asia   and is_kz_asia   ? color.new(asia_color, 92)   : na, title="Asia KZ")
 
 // ─────────────────────────────────────────────────────────────────────────────
-// SESSION BOXES — Full session with Hi/Lo tracking (borderless)
+// SESSION BOXES — Full session with Hi/Lo tracking
 // ─────────────────────────────────────────────────────────────────────────────
 
 // --- London Full Session Box ---
@@ -168,6 +168,9 @@ var label lon_lo_lb  = na
 var label lon_mid_lb = na
 
 if show_london and full_london_end
+    if not na(lon_box)
+        box.set_border_width(lon_box, 1)
+        box.set_border_color(lon_box, color.new(london_color, 45))
     float lon_mid = (lon_hi + lon_lo) / 2
     int ext_idx   = bar_index + extend_bars
     line.delete(lon_hi_ln)
@@ -188,14 +191,14 @@ if show_london and full_london_end
         if show_session_hl
             lon_hi_lb  := label.new(ext_idx, lon_hi, "LDN H",
                  color=color.new(color.white, 100), textcolor=color.new(london_color, 40),
-                 style=label.style_label_left, size=size.tiny)
+                 style=label.style_label_left, size=size.small)
             lon_lo_lb  := label.new(ext_idx, lon_lo, "LDN L",
                  color=color.new(color.white, 100), textcolor=color.new(london_color, 40),
-                 style=label.style_label_left, size=size.tiny)
+                 style=label.style_label_left, size=size.small)
         if show_session_mid
             lon_mid_lb := label.new(ext_idx, lon_mid, "LDN M",
                  color=color.new(color.white, 100), textcolor=color.new(london_color, 55),
-                 style=label.style_label_left, size=size.tiny)
+                 style=label.style_label_left, size=size.small)
 
 // --- NY Session Hi/Lo ---
 var line  ny_hi_ln  = na
@@ -206,6 +209,9 @@ var label ny_lo_lb  = na
 var label ny_mid_lb = na
 
 if show_ny and full_ny_end
+    if not na(ny_box)
+        box.set_border_width(ny_box, 1)
+        box.set_border_color(ny_box, color.new(ny_color, 45))
     float ny_mid = (ny_hi + ny_lo) / 2
     int ext_idx  = bar_index + extend_bars
     line.delete(ny_hi_ln)
@@ -226,14 +232,14 @@ if show_ny and full_ny_end
         if show_session_hl
             ny_hi_lb  := label.new(ext_idx, ny_hi, "NY H",
                  color=color.new(color.white, 100), textcolor=color.new(ny_color, 40),
-                 style=label.style_label_left, size=size.tiny)
+                 style=label.style_label_left, size=size.small)
             ny_lo_lb  := label.new(ext_idx, ny_lo, "NY L",
                  color=color.new(color.white, 100), textcolor=color.new(ny_color, 40),
-                 style=label.style_label_left, size=size.tiny)
+                 style=label.style_label_left, size=size.small)
         if show_session_mid
             ny_mid_lb := label.new(ext_idx, ny_mid, "NY M",
                  color=color.new(color.white, 100), textcolor=color.new(ny_color, 55),
-                 style=label.style_label_left, size=size.tiny)
+                 style=label.style_label_left, size=size.small)
 
 // --- Asia Session Hi/Lo ---
 var line  asia_hi_ln  = na
@@ -244,6 +250,9 @@ var label asia_lo_lb  = na
 var label asia_mid_lb = na
 
 if show_asia and full_asia_end
+    if not na(asia_box)
+        box.set_border_width(asia_box, 1)
+        box.set_border_color(asia_box, color.new(asia_color, 45))
     float asia_mid = (asia_hi + asia_lo) / 2
     int ext_idx    = bar_index + extend_bars
     line.delete(asia_hi_ln)
@@ -264,14 +273,14 @@ if show_asia and full_asia_end
         if show_session_hl
             asia_hi_lb  := label.new(ext_idx, asia_hi, "ASIA H",
                  color=color.new(color.white, 100), textcolor=color.new(asia_color, 40),
-                 style=label.style_label_left, size=size.tiny)
+                 style=label.style_label_left, size=size.small)
             asia_lo_lb  := label.new(ext_idx, asia_lo, "ASIA L",
                  color=color.new(color.white, 100), textcolor=color.new(asia_color, 40),
-                 style=label.style_label_left, size=size.tiny)
+                 style=label.style_label_left, size=size.small)
         if show_session_mid
             asia_mid_lb := label.new(ext_idx, asia_mid, "ASIA M",
                  color=color.new(color.white, 100), textcolor=color.new(asia_color, 55),
-                 style=label.style_label_left, size=size.tiny)
+                 style=label.style_label_left, size=size.small)
 
 // ─────────────────────────────────────────────────────────────────────────────
 // KEY LEVELS — PDH/PDL & PWH/PWL

@@ -1,64 +1,59 @@
 # Killzones & Levels — TradingView Indicator
 
-Professional forex session indicator with automatic DST adjustment and key levels.
+Indicador profesional de sesiones con ajuste automático de DST y niveles clave.
 
-## Features
+## Sesiones
 
-- **3 Session Boxes** — London, New York, Asia with full market hours
-- **Killzone Highlights** — Subtle bgcolor for your specific trading windows within each session
-- **Session Hi/Lo/Mid** — Extension lines from the full session range
-- **PDH/PDL & PWH/PWL** — Previous Day and Week High/Low levels
-- **Automatic DST** — Uses IANA timezones, no manual adjustment needed
+| Sesión | Tu hora (UTC-3) | Zona horaria nativa | Color |
+|--------|-----------------|---------------------|-------|
+| 🇬🇧 London | 05:00 - 07:00 | Europe/London 08:00-10:00 | Azul |
+| 🇺🇸 New York | 10:00 - 12:30 | America/New_York 08:00-10:30 | Naranja |
+| 🇯🇵 Asia | 20:00 - 22:30 | Asia/Tokyo 08:00-10:30 | Púrpura |
 
-## Sessions
+### Sesiones Completas (fondo ultra-suave)
 
-| Session | Full Session (UTC-3) | Killzone (UTC-3) | Native TZ | Color |
-|---------|---------------------|------------------|-----------|-------|
-| 🇬🇧 London | 05:00 - 09:00 | 05:00 - 07:00 | Europe/London | Green |
-| 🇺🇸 New York | 10:00 - 15:00 | 10:00 - 12:30 | America/New_York | Orange |
-| 🇯🇵 Asia | 20:00 - 04:00 | 20:00 - 22:30 | Asia/Tokyo | Purple |
+| Sesión | Horario completo (UTC-3) | Zona Nativa |
+|--------|--------------------------|-------------|
+| 🇬🇧 London | ~05:00 - 14:00 | Europe/London 08:00-17:00 |
+| 🇺🇸 NY | ~10:00 - 19:00 | America/New_York 08:00-17:00 |
+| 🇯🇵 Asia | ~20:00 - 06:00 | Asia/Tokyo 09:00-18:00 |
 
-## Key Levels
+> Las sesiones completas se muestran como un fondo casi invisible (97% transparencia) para dar contexto de cuándo el mercado está activo. Los killzones (boxes) se dibujan encima con más visibilidad.
 
-- **PDH / PDL** — Previous Day High / Low (amber, dashed)
-- **PWH / PWL** — Previous Week High / Low (pink, dotted)
-- **Session Hi / Lo** — Session high and low (session color, dashed)
-- **Session Mid** — Session midpoint (session color, dotted)
+## Niveles
 
-## DST Auto-Adjustment
+- **PDH / PDL** — Previous Day High / Low (ámbar, línea discontinua)
+- **PWH / PWL** — Previous Week High / Low (rosa, línea punteada)
+- **Session Hi / Lo** — Máximo y mínimo de cada sesión (color de sesión, discontinua)
+- **Session Mid** — Punto medio de cada sesión (color de sesión, punteada)
 
-Sessions are defined in their **native timezone** using IANA names:
-- `Europe/London` auto-adjusts between GMT and BST
-- `America/New_York` auto-adjusts between EST and EDT
-- `Asia/Tokyo` has no DST
+## DST Automático
 
-**No manual changes needed when clocks change.**
+Las sesiones se definen en su **zona horaria nativa** usando nombres IANA:
+- `Europe/London` ajusta automáticamente entre GMT y BST
+- `America/New_York` ajusta automáticamente entre EST y EDT
+- `Asia/Tokyo` no tiene DST
 
-## Installation
+**No necesitás cambiar nada cuando cambia el horario.**
 
-1. Open TradingView → Pine Script Editor (bottom tab)
-2. Delete the default content
-3. Copy and paste the content of `Sessions_Indicator.pine`
-4. Click **Add to chart**
-5. Click **Save** (disk icon) to save to your My Scripts
+## Cómo instalar
 
-## Configuration
+1. Abrí TradingView → Pine Script Editor (pestaña inferior)
+2. Borrá el contenido por defecto
+3. Copiá y pegá el contenido de `Sessions_Indicator.pine`
+4. Hacé clic en **Add to chart**
 
-In the indicator settings panel:
+## Configuración
 
-- **Toggle** each session and level on/off
-- **Change colors** for each session
-- **Adjust** line extension length (in bars)
-- **Modify** session times if you need different ranges
+En el panel de settings del indicador, podés:
 
-## Recommended Timeframes
+- **Activar/desactivar** cada sesión y cada nivel
+- **Cambiar colores** de fondo, borde, líneas y labels
+- **Ajustar** la extensión de líneas (en barras)
+- **Modificar horarios** de sesión si necesitás rangos diferentes
 
-- **M1, M5, M15** — Ideal for detailed session view
-- **H1** — Sessions appear as compact blocks
-- **H4+** — Sessions may not be visible (few bars per session)
+## Timeframes recomendados
 
-> **Note:** On timeframes below 5 minutes, session boxes may end 1-2 minutes early. This is a Pine Script limitation.
-
-## License
-
-MIT
+- **M1, M5, M15** — Ideal para ver las sesiones con detalle
+- **H1** — Se ven las sesiones como bloques compactos
+- **H4+** — Las sesiones pueden no ser visibles (pocas barras por sesión)
