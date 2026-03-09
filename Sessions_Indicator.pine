@@ -99,14 +99,20 @@ bgcolor(show_asia   and is_kz_asia   ? color.new(asia_color, 92)   : na, title="
 var float lon_hi  = na
 var float lon_lo  = na
 var box   lon_box = na
+var line  lon_active_hi_ln = na
+var line  lon_active_lo_ln = na
+var int   lon_start_idx = na
 
 if show_london
     if full_london_start
         lon_hi  := high
         lon_lo  := low
+        lon_start_idx := bar_index
         lon_box := box.new(bar_index, high, bar_index, low,
              border_color=color.new(london_color, 100),
              bgcolor=color.new(london_color, 94), border_width=0)
+        lon_active_hi_ln := line.new(bar_index, high, bar_index, high, color=color.new(london_color, 45), width=1)
+        lon_active_lo_ln := line.new(bar_index, low, bar_index, low, color=color.new(london_color, 45), width=1)
     if is_full_london
         lon_hi := math.max(lon_hi, high)
         lon_lo := math.min(lon_lo, low)
@@ -114,19 +120,31 @@ if show_london
             box.set_top(lon_box, lon_hi)
             box.set_bottom(lon_box, lon_lo)
             box.set_right(lon_box, bar_index)
+        if not na(lon_active_hi_ln)
+            line.set_xy1(lon_active_hi_ln, lon_start_idx, lon_hi)
+            line.set_xy2(lon_active_hi_ln, bar_index, lon_hi)
+        if not na(lon_active_lo_ln)
+            line.set_xy1(lon_active_lo_ln, lon_start_idx, lon_lo)
+            line.set_xy2(lon_active_lo_ln, bar_index, lon_lo)
 
 // --- NY Full Session Box ---
 var float ny_hi  = na
 var float ny_lo  = na
 var box   ny_box = na
+var line  ny_active_hi_ln = na
+var line  ny_active_lo_ln = na
+var int   ny_start_idx = na
 
 if show_ny
     if full_ny_start
         ny_hi  := high
         ny_lo  := low
+        ny_start_idx := bar_index
         ny_box := box.new(bar_index, high, bar_index, low,
              border_color=color.new(ny_color, 100),
              bgcolor=color.new(ny_color, 94), border_width=0)
+        ny_active_hi_ln := line.new(bar_index, high, bar_index, high, color=color.new(ny_color, 45), width=1)
+        ny_active_lo_ln := line.new(bar_index, low, bar_index, low, color=color.new(ny_color, 45), width=1)
     if is_full_ny
         ny_hi := math.max(ny_hi, high)
         ny_lo := math.min(ny_lo, low)
@@ -134,19 +152,31 @@ if show_ny
             box.set_top(ny_box, ny_hi)
             box.set_bottom(ny_box, ny_lo)
             box.set_right(ny_box, bar_index)
+        if not na(ny_active_hi_ln)
+            line.set_xy1(ny_active_hi_ln, ny_start_idx, ny_hi)
+            line.set_xy2(ny_active_hi_ln, bar_index, ny_hi)
+        if not na(ny_active_lo_ln)
+            line.set_xy1(ny_active_lo_ln, ny_start_idx, ny_lo)
+            line.set_xy2(ny_active_lo_ln, bar_index, ny_lo)
 
 // --- Asia Full Session Box ---
 var float asia_hi  = na
 var float asia_lo  = na
 var box   asia_box = na
+var line  asia_active_hi_ln = na
+var line  asia_active_lo_ln = na
+var int   asia_start_idx = na
 
 if show_asia
     if full_asia_start
         asia_hi  := high
         asia_lo  := low
+        asia_start_idx := bar_index
         asia_box := box.new(bar_index, high, bar_index, low,
              border_color=color.new(asia_color, 100),
              bgcolor=color.new(asia_color, 94), border_width=0)
+        asia_active_hi_ln := line.new(bar_index, high, bar_index, high, color=color.new(asia_color, 45), width=1)
+        asia_active_lo_ln := line.new(bar_index, low, bar_index, low, color=color.new(asia_color, 45), width=1)
     if is_full_asia
         asia_hi := math.max(asia_hi, high)
         asia_lo := math.min(asia_lo, low)
@@ -154,6 +184,12 @@ if show_asia
             box.set_top(asia_box, asia_hi)
             box.set_bottom(asia_box, asia_lo)
             box.set_right(asia_box, bar_index)
+        if not na(asia_active_hi_ln)
+            line.set_xy1(asia_active_hi_ln, asia_start_idx, asia_hi)
+            line.set_xy2(asia_active_hi_ln, bar_index, asia_hi)
+        if not na(asia_active_lo_ln)
+            line.set_xy1(asia_active_lo_ln, asia_start_idx, asia_lo)
+            line.set_xy2(asia_active_lo_ln, bar_index, asia_lo)
 
 // ─────────────────────────────────────────────────────────────────────────────
 // SESSION Hi/Lo/Mid LINES — Extension lines from full session range
@@ -171,6 +207,8 @@ if show_london and full_london_end
     if not na(lon_box)
         box.set_border_width(lon_box, 1)
         box.set_border_color(lon_box, color.new(london_color, 45))
+    line.delete(lon_active_hi_ln)
+    line.delete(lon_active_lo_ln)
     float lon_mid = (lon_hi + lon_lo) / 2
     int ext_idx   = bar_index + extend_bars
     line.delete(lon_hi_ln)
@@ -212,6 +250,8 @@ if show_ny and full_ny_end
     if not na(ny_box)
         box.set_border_width(ny_box, 1)
         box.set_border_color(ny_box, color.new(ny_color, 45))
+    line.delete(ny_active_hi_ln)
+    line.delete(ny_active_lo_ln)
     float ny_mid = (ny_hi + ny_lo) / 2
     int ext_idx  = bar_index + extend_bars
     line.delete(ny_hi_ln)
@@ -253,6 +293,8 @@ if show_asia and full_asia_end
     if not na(asia_box)
         box.set_border_width(asia_box, 1)
         box.set_border_color(asia_box, color.new(asia_color, 45))
+    line.delete(asia_active_hi_ln)
+    line.delete(asia_active_lo_ln)
     float asia_mid = (asia_hi + asia_lo) / 2
     int ext_idx    = bar_index + extend_bars
     line.delete(asia_hi_ln)
