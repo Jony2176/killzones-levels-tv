@@ -38,6 +38,14 @@ show_pwhl    = input.bool(true, "Show PWH / PWL", group="📊 Levels")
 pwh_color    = input.color(color.new(#E91E63, 35), "PWH / PWL Color", group="📊 Levels")
 
 // ─────────────────────────────────────────────────────────────────────────────
+// INPUTS — Trend Dashboard
+// ─────────────────────────────────────────────────────────────────────────────
+
+show_trend_dash = input.bool(true, "Show Trend Dashboard", group="📈 Trend Dashboard")
+trend_ema_len   = input.int(20, "EMA Length for Trend", group="📈 Trend Dashboard")
+dash_position   = input.string("Top Right", "Dashboard Position", options=["Top Right", "Bottom Right", "Top Left", "Bottom Left"], group="📈 Trend Dashboard")
+
+// ─────────────────────────────────────────────────────────────────────────────
 // INPUTS — Display
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -372,6 +380,48 @@ if show_pwhl and barstate.islast
     pwl_label := label.new(bar_index + extend_bars, pwl, "PWL",
          color=color.new(color.white, 100), textcolor=pwh_color,
          style=label.style_label_left, size=size.small)
+
+// ─────────────────────────────────────────────────────────────────────────────
+// TREND DASHBOARD
+// ─────────────────────────────────────────────────────────────────────────────
+
+ema_15m = request.security(syminfo.tickerid, "15", ta.ema(close, trend_ema_len))
+close_15m = request.security(syminfo.tickerid, "15", close)
+
+ema_1h = request.security(syminfo.tickerid, "60", ta.ema(close, trend_ema_len))
+close_1h = request.security(syminfo.tickerid, "60", close)
+
+ema_D = request.security(syminfo.tickerid, "D", ta.ema(close, trend_ema_len))
+close_D = request.security(syminfo.tickerid, "D", close)
+
+ema_W = request.security(syminfo.tickerid, "W", ta.ema(close, trend_ema_len))
+close_W = request.security(syminfo.tickerid, "W", close)
+
+trend_15m_color = close_15m >= ema_15m ? color.new(color.green, 40) : color.new(color.red, 40)
+trend_1h_color  = close_1h >= ema_1h ? color.new(color.green, 40) : color.new(color.red, 40)
+trend_D_color   = close_D >= ema_D ? color.new(color.green, 40) : color.new(color.red, 40)
+trend_W_color   = close_W >= ema_W ? color.new(color.green, 40) : color.new(color.red, 40)
+
+if show_trend_dash and barstate.islast
+    string pos = dash_position == "Top Right" ? position.top_right :
+                 dash_position == "Bottom Right" ? position.bottom_right :
+                 dash_position == "Top Left" ? position.top_left : position.bottom_left
+                 
+    table trend_tb = table.new(pos, 2, 5, bgcolor=color.new(color.black, 40), border_width=1, border_color=color.new(color.gray, 60))
+    table.cell(trend_tb, 0, 0, "Timeframe", text_color=color.white, text_size=size.small, bgcolor=color.new(color.gray, 80))
+    table.cell(trend_tb, 1, 0, "Trend", text_color=color.white, text_size=size.small, bgcolor=color.new(color.gray, 80))
+    
+    table.cell(trend_tb, 0, 1, "15 min", text_color=color.white, text_size=size.small, bgcolor=color.new(color.black, 40))
+    table.cell(trend_tb, 1, 1, close_15m >= ema_15m ? "Bullish" : "Bearish", text_color=color.white, text_size=size.small, bgcolor=trend_15m_color)
+
+    table.cell(trend_tb, 0, 2, "1 Hour", text_color=color.white, text_size=size.small, bgcolor=color.new(color.black, 40))
+    table.cell(trend_tb, 1, 2, close_1h >= ema_1h ? "Bullish" : "Bearish", text_color=color.white, text_size=size.small, bgcolor=trend_1h_color)
+    
+    table.cell(trend_tb, 0, 3, "Daily", text_color=color.white, text_size=size.small, bgcolor=color.new(color.black, 40))
+    table.cell(trend_tb, 1, 3, close_D >= ema_D ? "Bullish" : "Bearish", text_color=color.white, text_size=size.small, bgcolor=trend_D_color)
+    
+    table.cell(trend_tb, 0, 4, "Weekly", text_color=color.white, text_size=size.small, bgcolor=color.new(color.black, 40))
+    table.cell(trend_tb, 1, 4, close_W >= ema_W ? "Bullish" : "Bearish", text_color=color.white, text_size=size.small, bgcolor=trend_W_color)
 
 // ─────────────────────────────────────────────────────────────────────────────
 // END
