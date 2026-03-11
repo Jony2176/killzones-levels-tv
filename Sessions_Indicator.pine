@@ -411,17 +411,17 @@ if show_trend_dash and barstate.islast
     table.cell(trend_tb, 0, 0, "Timeframe", text_color=color.white, text_size=size.small, bgcolor=color.new(color.gray, 80))
     table.cell(trend_tb, 1, 0, "Trend", text_color=color.white, text_size=size.small, bgcolor=color.new(color.gray, 80))
     
-    table.cell(trend_tb, 0, 1, "15 min", text_color=color.white, text_size=size.small, bgcolor=color.new(color.black, 40))
-    table.cell(trend_tb, 1, 1, close_15m >= ema_15m ? "Bullish" : "Bearish", text_color=color.white, text_size=size.small, bgcolor=trend_15m_color)
+    table.cell(trend_tb, 0, 1, "15m", text_color=color.white, text_size=size.small, bgcolor=color.new(color.black, 40))
+    table.cell(trend_tb, 1, 1, close_15m >= ema_15m ? "Bull" : "Bear", text_color=color.white, text_size=size.small, bgcolor=trend_15m_color)
 
-    table.cell(trend_tb, 0, 2, "1 Hour", text_color=color.white, text_size=size.small, bgcolor=color.new(color.black, 40))
-    table.cell(trend_tb, 1, 2, close_1h >= ema_1h ? "Bullish" : "Bearish", text_color=color.white, text_size=size.small, bgcolor=trend_1h_color)
+    table.cell(trend_tb, 0, 2, "1H", text_color=color.white, text_size=size.small, bgcolor=color.new(color.black, 40))
+    table.cell(trend_tb, 1, 2, close_1h >= ema_1h ? "Bull" : "Bear", text_color=color.white, text_size=size.small, bgcolor=trend_1h_color)
     
-    table.cell(trend_tb, 0, 3, "Daily", text_color=color.white, text_size=size.small, bgcolor=color.new(color.black, 40))
-    table.cell(trend_tb, 1, 3, close_D >= ema_D ? "Bullish" : "Bearish", text_color=color.white, text_size=size.small, bgcolor=trend_D_color)
+    table.cell(trend_tb, 0, 3, "1D", text_color=color.white, text_size=size.small, bgcolor=color.new(color.black, 40))
+    table.cell(trend_tb, 1, 3, close_D >= ema_D ? "Bull" : "Bear", text_color=color.white, text_size=size.small, bgcolor=trend_D_color)
     
-    table.cell(trend_tb, 0, 4, "Weekly", text_color=color.white, text_size=size.small, bgcolor=color.new(color.black, 40))
-    table.cell(trend_tb, 1, 4, close_W >= ema_W ? "Bullish" : "Bearish", text_color=color.white, text_size=size.small, bgcolor=trend_W_color)
+    table.cell(trend_tb, 0, 4, "1W", text_color=color.white, text_size=size.small, bgcolor=color.new(color.black, 40))
+    table.cell(trend_tb, 1, 4, close_W >= ema_W ? "Bull" : "Bear", text_color=color.white, text_size=size.small, bgcolor=trend_W_color)
 
 // ─────────────────────────────────────────────────────────────────────────────
 // END
