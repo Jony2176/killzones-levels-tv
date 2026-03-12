@@ -112,42 +112,48 @@ if barstate.islast
 
     // ── Labels ──
     string dir_label = is_long ? "▲ LONG" : "▼ SHORT"
+    float profit_total = profit_tp1 + profit_tp2
+    float eff_rr = risk_usd > 0 ? profit_total / risk_usd : 0.0
 
+    // Entry: direction + price + lots + risk
     lb_entry := label.new(lbl_x, entryPrice,
-         "ENTRADA: " + str.tostring(entryPrice, price_fmt) +
-         " | " + str.tostring(lot_size, "#.##") + " lotes | " + dir_label,
+         dir_label + " · " + syminfo.ticker +
+         "\nEntrada: " + str.tostring(entryPrice, price_fmt) +
+         "\nLotaje:  " + str.tostring(lot_size, "#.##") + " lotes" +
+         "\nRiesgo:  $" + str.tostring(risk_usd, "#.##") + " (" + str.tostring(i_risk_pct, "#.##") + "%)",
          color=color.new(color.black, 10), textcolor=color.white,
          style=label.style_label_left, size=size.small)
 
+    // SL: price + pips + loss
     lb_sl := label.new(lbl_x, stopPrice,
-         "SL: " + str.tostring(stopPrice, price_fmt) +
-         " | -" + str.tostring(sl_pips, "#.#") + "p | -$" + str.tostring(risk_usd, "#.##"),
+         "⛔ STOP LOSS" +
+         "\n" + str.tostring(stopPrice, price_fmt) + " | -" + str.tostring(sl_pips, "#.#") + " pips" +
+         "\nPérdida: -$" + str.tostring(risk_usd, "#.##"),
          color=color.new(i_sl_color, 20), textcolor=color.white,
          style=is_long ? label.style_label_upper_left : label.style_label_lower_left,
          size=size.small)
 
+    // TP1: price + pips + partial lots + profit + BE instruction
     lb_tp1 := label.new(lbl_x, tp1_price,
-         "TP1 (1:" + str.tostring(i_rr_tp1, "#.#") + "): " + str.tostring(tp1_price, price_fmt) +
-         " | +" + str.tostring(pips_tp1, "#.#") + "p | +$" + str.tostring(profit_tp1, "#.##") +
-         "\nCerrar " + str.tostring(lots_tp1, "#.##") + " lotes (" + str.tostring(i_partial_pct, "#") + "%)" +
-         " → SL a BE",
+         "✅ TP1  (1:" + str.tostring(i_rr_tp1, "#.#") + ")" +
+         "\n" + str.tostring(tp1_price, price_fmt) + " | +" + str.tostring(pips_tp1, "#.#") + " pips" +
+         "\nCerrar: " + str.tostring(lots_tp1, "#.##") + " lotes (" + str.tostring(i_partial_pct, "#") + "%)" +
+         "\nGanancia: +$" + str.tostring(profit_tp1, "#.##") +
+         "\n→ Mover SL a BE: " + str.tostring(entryPrice, price_fmt),
          color=color.new(i_tp1_color, 20), textcolor=color.white,
          style=is_long ? label.style_label_lower_left : label.style_label_upper_left,
          size=size.small)
 
+    // TP2: price + pips + remaining lots + profit + total summary
     lb_tp2 := label.new(lbl_x, tp2_price,
-         "TP2 (1:" + str.tostring(i_rr_tp2, "#.#") + "): " + str.tostring(tp2_price, price_fmt) +
-         " | +" + str.tostring(pips_tp2, "#.#") + "p | +$" + str.tostring(profit_tp2, "#.##") +
-         "\nMantener " + str.tostring(lots_tp2, "#.##") + " lotes (" + str.tostring(100 - i_partial_pct, "#") + "%)",
+         "🎯 TP2  (1:" + str.tostring(i_rr_tp2, "#.#") + ")" +
+         "\n" + str.tostring(tp2_price, price_fmt) + " | +" + str.tostring(pips_tp2, "#.#") + " pips" +
+         "\nMantener: " + str.tostring(lots_tp2, "#.##") + " lotes (" + str.tostring(100 - i_partial_pct, "#") + "%)" +
+         "\nGanancia: +$" + str.tostring(profit_tp2, "#.##") +
+         "\nTotal: +$" + str.tostring(profit_total, "#.##") + " · R:R " + str.tostring(eff_rr, "#.##"),
          color=color.new(i_tp2_color, 20), textcolor=color.white,
          style=is_long ? label.style_label_lower_left : label.style_label_upper_left,
          size=size.small)
-
-    float be_y = (entryPrice + tp1_price) / 2.0
-    lb_be := label.new(bar_index + math.round(i_zone_bars / 2), be_y,
-         "1:" + str.tostring(i_rr_tp1, "#.#") + " → Cerrar " + str.tostring(i_partial_pct, "#") + "% + SL a BE",
-         color=color.new(color.white, 100), textcolor=color.new(i_tp1_color, 20),
-         style=label.style_none, size=size.normal)
 
 // ─────────────────────────────────────────────────────────────────────────────
 // END
