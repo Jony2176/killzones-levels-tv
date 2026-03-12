@@ -155,7 +155,7 @@ if barstate.islast
              color=i_entry_color, style=line.style_solid, width=2)
         lb_entry := label.new(right_idx, entry_price,
              "ENTRADA: " + str.tostring(entry_price, price_fmt) + " | " + str.tostring(lot_size, "#.##") + " lotes | " + dir_label,
-             color=color.new(color.black, 30), textcolor=i_entry_color,
+             color=color.new(color.black, 30), textcolor=color.white,
              style=label.style_label_left, size=size.small)
 
         // ── Stop Loss Line ──
@@ -164,7 +164,7 @@ if barstate.islast
         lb_sl := label.new(right_idx, sl_price,
              "SL: " + str.tostring(sl_price, price_fmt) +
              " | -" + str.tostring(sl_pips, "#.#") + "p | -$" + str.tostring(risk_usd, "#.##"),
-             color=color.new(i_sl_color, 70), textcolor=i_sl_color,
+             color=color.new(i_sl_color, 70), textcolor=color.white,
              style=is_long ? label.style_label_upper_left : label.style_label_lower_left,
              size=size.small)
 
@@ -176,7 +176,7 @@ if barstate.islast
              " | +" + str.tostring(pips_tp1, "#.#") + "p | +$" + str.tostring(profit_tp1, "#.##") +
              "\nCerrar " + str.tostring(lots_tp1, "#.##") + " lotes (" + str.tostring(i_partial_pct, "#") + "%)" +
              " → SL a BE (" + str.tostring(entry_price, price_fmt) + ")",
-             color=color.new(i_tp1_color, 70), textcolor=i_tp1_color,
+             color=color.new(i_tp1_color, 70), textcolor=color.white,
              style=is_long ? label.style_label_lower_left : label.style_label_upper_left,
              size=size.small)
 
@@ -187,7 +187,7 @@ if barstate.islast
              "TP2 (1:" + str.tostring(i_rr_tp2, "#.#") + "): " + str.tostring(tp2_price, price_fmt) +
              " | +" + str.tostring(pips_tp2, "#.#") + "p | +$" + str.tostring(profit_tp2, "#.##") +
              "\nMantener " + str.tostring(lots_tp2, "#.##") + " lotes (" + str.tostring(100 - i_partial_pct, "#") + "%)",
-             color=color.new(i_tp2_color, 70), textcolor=i_tp2_color,
+             color=color.new(i_tp2_color, 70), textcolor=color.white,
              style=is_long ? label.style_label_lower_left : label.style_label_upper_left,
              size=size.small)
 
@@ -239,7 +239,7 @@ if i_show_table and barstate.islast
     color lbl_clr  = color.new(#8888AA, 0)
     color val_clr  = color.new(color.white, 0)
     color sec_clr  = color.new(#4444AA, 30)
-    string sz      = size.tiny
+    string sz      = size.small
     string dir_text = is_long ? "▲ LONG" : "▼ SHORT"
     color dir_clr   = is_long ? #00E676 : #FF1744
 
