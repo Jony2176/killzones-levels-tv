@@ -6,19 +6,18 @@
 // ███████╗╚██████╔╝   ██║       ███████║██║███████╗███████╗
 // ╚══════╝ ╚═════╝    ╚═╝       ╚══════╝╚═╝╚══════╝╚══════╝
 //         Risk & Lot Size Calculator — Multi-Pair
-//          Partial Close Management + Breakeven SL
+//          Drag Entry & SL directly on chart
 // ═══════════════════════════════════════════════════════════════════════════════
 
 //@version=5
 indicator("Risk & Lot Calculator", overlay=true, max_lines_count=500, max_labels_count=500, max_boxes_count=500)
 
 // ─────────────────────────────────────────────────────────────────────────────
-// INPUTS — Trade Parameters
+// INPUTS — Trade Parameters (Entry & SL are draggable on chart!)
 // ─────────────────────────────────────────────────────────────────────────────
 
-i_direction   = input.string("Long", "Dirección", options=["Long", "Short"], group="📐 Trade Setup")
-i_entry_price = input.float(0.0, "Precio de Entrada (0 = precio actual)", step=0.00001, group="📐 Trade Setup", tooltip="Dejá en 0 para usar el precio de cierre actual")
-i_sl_pips     = input.float(10.0, "Stop Loss (pips)", minval=0.1, step=0.5, group="📐 Trade Setup")
+i_entry_price = input.price(defval=0, title="📍 Precio de Entrada", confirm=false, group="📐 Trade Setup")
+i_sl_price    = input.price(defval=0, title="🛑 Stop Loss", confirm=false, group="📐 Trade Setup")
 i_account     = input.float(10000.0, "Balance de Cuenta (USD)", minval=100.0, step=1000.0, group="📐 Trade Setup", tooltip="Balance actual de tu cuenta de fondeo. Ej: 5000, 10000, 25000, 50000, 100000, 200000")
 i_risk_pct    = input.float(1.0, "Riesgo (% del balance)", minval=0.1, maxval=10.0, step=0.5, group="📐 Trade Setup", tooltip="Porcentaje del balance a arriesgar. Valores comunes: 0.5%, 1%, 1.5%, 2%")
 
@@ -48,17 +47,12 @@ i_extend_bars  = input.int(30, "Extensión de líneas (barras)", minval=5, maxva
 // PAIR AUTO-DETECTION — pip size & pip value per instrument
 // ─────────────────────────────────────────────────────────────────────────────
 
-// Detect pair from chart ticker
-// JPY pairs: pip = 0.01 | XAU: pip = 0.10 | Majors (xxxUSD): pip = 0.0001
 is_jpy_pair = str.contains(syminfo.ticker, "JPY")
 is_xau      = str.contains(syminfo.ticker, "XAU")
 
 pip_size    = is_jpy_pair ? 0.01 : is_xau ? 0.10 : 0.0001
 
 // Pip value per standard lot (in USD)
-// • xxxUSD pairs (EURUSD, GBPUSD, AUDUSD, NZDUSD): $10/pip (100k × 0.0001)
-// • USDJPY: (0.01 / rate) × 100,000 — dynamic, depends on current price
-// • XAUUSD: 100 oz × $0.10 = $10/pip
 pip_value   = is_jpy_pair ? (0.01 / close) * 100000.0 : 10.0
 
 // Price format string adapted per pair
@@ -71,31 +65,36 @@ pair_name   = syminfo.ticker
 // CORE CALCULATIONS
 // ─────────────────────────────────────────────────────────────────────────────
 
-// Risk in USD from account percentage
-i_risk_usd  = i_account * (i_risk_pct / 100.0)
-
-// Entry price
+// Resolve entry price (use close if not set)
 entry_price = i_entry_price > 0 ? i_entry_price : close
 
-// Direction multiplier
-is_long    = i_direction == "Long"
+// Resolve SL price (default: 10 pips below entry)
+sl_price    = i_sl_price > 0 ? i_sl_price : entry_price - 10 * pip_size
+
+// Auto-detect direction from SL position
+is_long    = sl_price < entry_price
 dir_mult   = is_long ? 1.0 : -1.0
 
-// Lot size calculation: Risk / (SL_pips × pip_value_per_lot)
-lot_size   = i_risk_usd / (i_sl_pips * pip_value)
+// Calculate SL distance in pips
+sl_pips    = math.abs(entry_price - sl_price) / pip_size
 
-// Price levels
-sl_price   = entry_price - dir_mult * i_sl_pips * pip_size
-tp1_price  = entry_price + dir_mult * i_sl_pips * i_rr_tp1 * pip_size
-tp2_price  = entry_price + dir_mult * i_sl_pips * i_rr_tp2 * pip_size
+// Risk in USD from account percentage
+risk_usd   = i_account * (i_risk_pct / 100.0)
+
+// Lot size calculation: Risk / (SL_pips × pip_value_per_lot)
+lot_size   = sl_pips > 0 ? risk_usd / (sl_pips * pip_value) : 0.0
+
+// TP prices based on SL distance × ratio
+tp1_price  = entry_price + dir_mult * sl_pips * i_rr_tp1 * pip_size
+tp2_price  = entry_price + dir_mult * sl_pips * i_rr_tp2 * pip_size
 
 // Partial lots
 lots_tp1   = lot_size * (i_partial_pct / 100.0)
 lots_tp2   = lot_size * (1.0 - i_partial_pct / 100.0)
 
 // Pips to targets
-pips_tp1   = i_sl_pips * i_rr_tp1
-pips_tp2   = i_sl_pips * i_rr_tp2
+pips_tp1   = sl_pips * i_rr_tp1
+pips_tp2   = sl_pips * i_rr_tp2
 
 // Profit calculations
 profit_tp1      = lots_tp1 * pips_tp1 * pip_value
@@ -103,10 +102,10 @@ profit_tp2      = lots_tp2 * pips_tp2 * pip_value
 profit_total    = profit_tp1 + profit_tp2
 
 // Risk percentage
-risk_pct   = (i_risk_usd / i_account) * 100.0
+risk_pct   = (risk_usd / i_account) * 100.0
 
 // Effective R:R (total profit / risk)
-eff_rr     = profit_total / i_risk_usd
+eff_rr     = risk_usd > 0 ? profit_total / risk_usd : 0.0
 
 // ─────────────────────────────────────────────────────────────────────────────
 // VISUAL — Chart Lines, Labels & Boxes (only on last bar)
@@ -142,13 +141,14 @@ if barstate.islast
 
     int left_idx  = bar_index - 5
     int right_idx = bar_index + i_extend_bars
+    string dir_label = is_long ? "▲ LONG" : "▼ SHORT"
 
     if i_show_lines
         // ── Entry Line ──
         ln_entry := line.new(left_idx, entry_price, right_idx, entry_price,
              color=i_entry_color, style=line.style_solid, width=2)
         lb_entry := label.new(right_idx, entry_price,
-             "ENTRADA: " + str.tostring(entry_price, price_fmt) + "\nLotaje: " + str.tostring(lot_size, "#.##") + " lotes",
+             "ENTRADA: " + str.tostring(entry_price, price_fmt) + " | " + str.tostring(lot_size, "#.##") + " lotes | " + dir_label,
              color=color.new(color.black, 30), textcolor=i_entry_color,
              style=label.style_label_left, size=size.small)
 
@@ -157,7 +157,7 @@ if barstate.islast
              color=i_sl_color, style=line.style_solid, width=2)
         lb_sl := label.new(right_idx, sl_price,
              "SL: " + str.tostring(sl_price, price_fmt) +
-             "\n-" + str.tostring(i_sl_pips, "#.#") + " pips | -$" + str.tostring(i_risk_usd, "#.##"),
+             " | -" + str.tostring(sl_pips, "#.#") + "p | -$" + str.tostring(risk_usd, "#.##"),
              color=color.new(i_sl_color, 70), textcolor=i_sl_color,
              style=is_long ? label.style_label_upper_left : label.style_label_lower_left,
              size=size.small)
@@ -167,9 +167,9 @@ if barstate.islast
              color=i_tp1_color, style=line.style_dashed, width=2)
         lb_tp1 := label.new(right_idx, tp1_price,
              "TP1 (1:" + str.tostring(i_rr_tp1, "#.#") + "): " + str.tostring(tp1_price, price_fmt) +
-             "\n+" + str.tostring(pips_tp1, "#.#") + " pips | +$" + str.tostring(profit_tp1, "#.##") +
+             " | +" + str.tostring(pips_tp1, "#.#") + "p | +$" + str.tostring(profit_tp1, "#.##") +
              "\nCerrar " + str.tostring(lots_tp1, "#.##") + " lotes (" + str.tostring(i_partial_pct, "#") + "%)" +
-             "\n→ SL a BE (" + str.tostring(entry_price, price_fmt) + ")",
+             " → SL a BE (" + str.tostring(entry_price, price_fmt) + ")",
              color=color.new(i_tp1_color, 70), textcolor=i_tp1_color,
              style=is_long ? label.style_label_lower_left : label.style_label_upper_left,
              size=size.small)
@@ -179,7 +179,7 @@ if barstate.islast
              color=i_tp2_color, style=line.style_dashed, width=2)
         lb_tp2 := label.new(right_idx, tp2_price,
              "TP2 (1:" + str.tostring(i_rr_tp2, "#.#") + "): " + str.tostring(tp2_price, price_fmt) +
-             "\n+" + str.tostring(pips_tp2, "#.#") + " pips | +$" + str.tostring(profit_tp2, "#.##") +
+             " | +" + str.tostring(pips_tp2, "#.#") + "p | +$" + str.tostring(profit_tp2, "#.##") +
              "\nMantener " + str.tostring(lots_tp2, "#.##") + " lotes (" + str.tostring(100 - i_partial_pct, "#") + "%)",
              color=color.new(i_tp2_color, 70), textcolor=i_tp2_color,
              style=is_long ? label.style_label_lower_left : label.style_label_upper_left,
@@ -213,7 +213,7 @@ if barstate.islast
              bgcolor=color.new(i_tp2_color, 94), border_width=0)
 
 // ─────────────────────────────────────────────────────────────────────────────
-// SUMMARY TABLE
+// COMPACT SUMMARY TABLE (11 rows — fits all resolutions)
 // ─────────────────────────────────────────────────────────────────────────────
 
 if i_show_table and barstate.islast
@@ -223,81 +223,65 @@ if i_show_table and barstate.islast
                      i_table_pos == "Bottom Left"   ? position.bottom_left :
                      i_table_pos == "Middle Right"  ? position.middle_right : position.middle_left
 
-    // Table: 2 columns, 16 rows
-    var table tb = table.new(tbl_pos, 2, 16,
+    var table tb = table.new(tbl_pos, 2, 11,
          bgcolor=color.new(#1A1A2E, 10),
          border_width=1,
          border_color=color.new(#333355, 40),
          frame_width=2,
          frame_color=color.new(#4444AA, 50))
 
-    // ── Header ──
-    table.cell(tb, 0, 0, "💰 " + pair_name, text_color=color.white, text_size=size.small,
-         bgcolor=color.new(#2D2D5E, 0), text_halign=text.align_left)
-    table.cell(tb, 1, 0, i_direction == "Long" ? "▲ LONG" : "▼ SHORT",
-         text_color=is_long ? #00E676 : #FF1744, text_size=size.small,
-         bgcolor=color.new(#2D2D5E, 0), text_halign=text.align_right)
-    table.merge_cells(tb, 0, 0, 1, 0)
-
-    // Helper: direction text for header
-    string dir_text = i_direction == "Long" ? "▲ LONG" : "▼ SHORT"
-    color dir_clr   = is_long ? #00E676 : #FF1744
-
-    // ── Trade Info Section ──
     color lbl_clr  = color.new(#8888AA, 0)
     color val_clr  = color.new(color.white, 0)
     color sec_clr  = color.new(#4444AA, 30)
     string sz      = size.small
+    string dir_text = is_long ? "▲ LONG" : "▼ SHORT"
+    color dir_clr   = is_long ? #00E676 : #FF1744
 
-    table.cell(tb, 0, 1, "Dirección", text_color=lbl_clr, text_size=sz, text_halign=text.align_left, bgcolor=color.new(#1A1A2E, 10))
-    table.cell(tb, 1, 1, dir_text, text_color=dir_clr, text_size=sz, text_halign=text.align_right, bgcolor=color.new(#1A1A2E, 10))
+    // Row 0: Header — Pair + Direction
+    table.cell(tb, 0, 0, "💰 " + pair_name, text_color=color.white, text_size=sz,
+         bgcolor=color.new(#2D2D5E, 0), text_halign=text.align_left)
+    table.cell(tb, 1, 0, dir_text, text_color=dir_clr, text_size=sz,
+         bgcolor=color.new(#2D2D5E, 0), text_halign=text.align_right)
 
-    table.cell(tb, 0, 2, "Entrada", text_color=lbl_clr, text_size=sz, text_halign=text.align_left, bgcolor=color.new(#1A1A2E, 10))
-    table.cell(tb, 1, 2, str.tostring(entry_price, price_fmt), text_color=val_clr, text_size=sz, text_halign=text.align_right, bgcolor=color.new(#1A1A2E, 10))
+    // Row 1: Entry + Lots
+    table.cell(tb, 0, 1, "Entrada: " + str.tostring(entry_price, price_fmt), text_color=val_clr, text_size=sz, text_halign=text.align_left, bgcolor=color.new(#1A1A2E, 10))
+    table.cell(tb, 1, 1, str.tostring(lot_size, "#.##") + " lotes", text_color=val_clr, text_size=sz, text_halign=text.align_right, bgcolor=color.new(#1A1A2E, 10))
 
-    table.cell(tb, 0, 3, "Stop Loss", text_color=lbl_clr, text_size=sz, text_halign=text.align_left, bgcolor=color.new(#1A1A2E, 10))
-    table.cell(tb, 1, 3, str.tostring(sl_price, price_fmt) + " (" + str.tostring(i_sl_pips, "#.#") + "p)", text_color=i_sl_color, text_size=sz, text_halign=text.align_right, bgcolor=color.new(#1A1A2E, 10))
+    // Row 2: SL + Risk
+    table.cell(tb, 0, 2, "SL: " + str.tostring(sl_price, price_fmt) + " (" + str.tostring(sl_pips, "#.#") + "p)", text_color=i_sl_color, text_size=sz, text_halign=text.align_left, bgcolor=color.new(#1A1A2E, 10))
+    table.cell(tb, 1, 2, "-$" + str.tostring(risk_usd, "#.##") + " (" + str.tostring(risk_pct, "#.##") + "%)", text_color=i_sl_color, text_size=sz, text_halign=text.align_right, bgcolor=color.new(#1A1A2E, 10))
 
-    table.cell(tb, 0, 4, "Riesgo", text_color=lbl_clr, text_size=sz, text_halign=text.align_left, bgcolor=color.new(#1A1A2E, 10))
-    table.cell(tb, 1, 4, "$" + str.tostring(i_risk_usd, "#.##") + " (" + str.tostring(risk_pct, "#.##") + "%)", text_color=i_sl_color, text_size=sz, text_halign=text.align_right, bgcolor=color.new(#1A1A2E, 10))
+    // Row 3: Separator
+    table.cell(tb, 0, 3, "", bgcolor=sec_clr)
+    table.cell(tb, 1, 3, "", bgcolor=sec_clr)
 
-    table.cell(tb, 0, 5, "Lotaje Total", text_color=lbl_clr, text_size=sz, text_halign=text.align_left, bgcolor=color.new(#1A1A2E, 10))
-    table.cell(tb, 1, 5, str.tostring(lot_size, "#.##") + " lotes", text_color=color.new(color.white, 0), text_size=sz, text_halign=text.align_right, bgcolor=color.new(#1A1A2E, 10))
+    // Row 4: TP1 header
+    table.cell(tb, 0, 4, "TP1 (1:" + str.tostring(i_rr_tp1, "#.#") + ")", text_color=i_tp1_color, text_size=sz, text_halign=text.align_left, bgcolor=color.new(#1A1A2E, 10))
+    table.cell(tb, 1, 4, str.tostring(tp1_price, price_fmt), text_color=i_tp1_color, text_size=sz, text_halign=text.align_right, bgcolor=color.new(#1A1A2E, 10))
 
-    // ── Separator ──
-    table.cell(tb, 0, 6, "", bgcolor=sec_clr)
-    table.cell(tb, 1, 6, "", bgcolor=sec_clr)
+    // Row 5: TP1 lots + profit
+    table.cell(tb, 0, 5, "Cerrar " + str.tostring(lots_tp1, "#.##") + " (" + str.tostring(i_partial_pct, "#") + "%)", text_color=lbl_clr, text_size=sz, text_halign=text.align_left, bgcolor=color.new(#1A1A2E, 10))
+    table.cell(tb, 1, 5, "+$" + str.tostring(profit_tp1, "#.##"), text_color=i_tp1_color, text_size=sz, text_halign=text.align_right, bgcolor=color.new(#1A1A2E, 10))
 
-    // ── TP1 Section ──
-    table.cell(tb, 0, 7, "TP1 (1:" + str.tostring(i_rr_tp1, "#.#") + ")", text_color=i_tp1_color, text_size=sz, text_halign=text.align_left, bgcolor=color.new(#1A1A2E, 10))
-    table.cell(tb, 1, 7, str.tostring(tp1_price, price_fmt), text_color=i_tp1_color, text_size=sz, text_halign=text.align_right, bgcolor=color.new(#1A1A2E, 10))
+    // Row 6: BE reminder
+    table.cell(tb, 0, 6, "→ SL a BE", text_color=#FFD600, text_size=sz, text_halign=text.align_left, bgcolor=color.new(#1A1A2E, 10))
+    table.cell(tb, 1, 6, str.tostring(entry_price, price_fmt), text_color=#FFD600, text_size=sz, text_halign=text.align_right, bgcolor=color.new(#1A1A2E, 10))
 
-    table.cell(tb, 0, 8, "Cerrar", text_color=lbl_clr, text_size=sz, text_halign=text.align_left, bgcolor=color.new(#1A1A2E, 10))
-    table.cell(tb, 1, 8, str.tostring(lots_tp1, "#.##") + " lotes (" + str.tostring(i_partial_pct, "#") + "%)", text_color=val_clr, text_size=sz, text_halign=text.align_right, bgcolor=color.new(#1A1A2E, 10))
+    // Row 7: Separator
+    table.cell(tb, 0, 7, "", bgcolor=sec_clr)
+    table.cell(tb, 1, 7, "", bgcolor=sec_clr)
 
-    table.cell(tb, 0, 9, "Ganancia TP1", text_color=lbl_clr, text_size=sz, text_halign=text.align_left, bgcolor=color.new(#1A1A2E, 10))
-    table.cell(tb, 1, 9, "+$" + str.tostring(profit_tp1, "#.##"), text_color=i_tp1_color, text_size=sz, text_halign=text.align_right, bgcolor=color.new(#1A1A2E, 10))
+    // Row 8: TP2 header
+    table.cell(tb, 0, 8, "TP2 (1:" + str.tostring(i_rr_tp2, "#.#") + ")", text_color=i_tp2_color, text_size=sz, text_halign=text.align_left, bgcolor=color.new(#1A1A2E, 10))
+    table.cell(tb, 1, 8, str.tostring(tp2_price, price_fmt), text_color=i_tp2_color, text_size=sz, text_halign=text.align_right, bgcolor=color.new(#1A1A2E, 10))
 
-    table.cell(tb, 0, 10, "→ SL a BE", text_color=#FFD600, text_size=sz, text_halign=text.align_left, bgcolor=color.new(#1A1A2E, 10))
-    table.cell(tb, 1, 10, str.tostring(entry_price, price_fmt), text_color=#FFD600, text_size=sz, text_halign=text.align_right, bgcolor=color.new(#1A1A2E, 10))
+    // Row 9: TP2 lots + profit
+    table.cell(tb, 0, 9, "Mantener " + str.tostring(lots_tp2, "#.##") + " (" + str.tostring(100 - i_partial_pct, "#") + "%)", text_color=lbl_clr, text_size=sz, text_halign=text.align_left, bgcolor=color.new(#1A1A2E, 10))
+    table.cell(tb, 1, 9, "+$" + str.tostring(profit_tp2, "#.##"), text_color=i_tp2_color, text_size=sz, text_halign=text.align_right, bgcolor=color.new(#1A1A2E, 10))
 
-    // ── Separator ──
-    table.cell(tb, 0, 11, "", bgcolor=sec_clr)
-    table.cell(tb, 1, 11, "", bgcolor=sec_clr)
-
-    // ── TP2 Section ──
-    table.cell(tb, 0, 12, "TP2 (1:" + str.tostring(i_rr_tp2, "#.#") + ")", text_color=i_tp2_color, text_size=sz, text_halign=text.align_left, bgcolor=color.new(#1A1A2E, 10))
-    table.cell(tb, 1, 12, str.tostring(tp2_price, "#.#####"), text_color=i_tp2_color, text_size=sz, text_halign=text.align_right, bgcolor=color.new(#1A1A2E, 10))
-
-    table.cell(tb, 0, 13, "Mantener", text_color=lbl_clr, text_size=sz, text_halign=text.align_left, bgcolor=color.new(#1A1A2E, 10))
-    table.cell(tb, 1, 13, str.tostring(lots_tp2, "#.##") + " lotes (" + str.tostring(100 - i_partial_pct, "#") + "%)", text_color=val_clr, text_size=sz, text_halign=text.align_right, bgcolor=color.new(#1A1A2E, 10))
-
-    table.cell(tb, 0, 14, "Ganancia TP2", text_color=lbl_clr, text_size=sz, text_halign=text.align_left, bgcolor=color.new(#1A1A2E, 10))
-    table.cell(tb, 1, 14, "+$" + str.tostring(profit_tp2, "#.##"), text_color=i_tp2_color, text_size=sz, text_halign=text.align_right, bgcolor=color.new(#1A1A2E, 10))
-
-    // ── Totals ──
-    table.cell(tb, 0, 15, "💎 TOTAL", text_color=color.white, text_size=sz, text_halign=text.align_left, bgcolor=color.new(#2D2D5E, 0))
-    table.cell(tb, 1, 15, "+$" + str.tostring(profit_total, "#.##") + " (R:R " + str.tostring(eff_rr, "#.##") + ")", text_color=#00E676, text_size=sz, text_halign=text.align_right, bgcolor=color.new(#2D2D5E, 0))
+    // Row 10: Total
+    table.cell(tb, 0, 10, "💎 TOTAL", text_color=color.white, text_size=sz, text_halign=text.align_left, bgcolor=color.new(#2D2D5E, 0))
+    table.cell(tb, 1, 10, "+$" + str.tostring(profit_total, "#.##") + " (R:R " + str.tostring(eff_rr, "#.##") + ")", text_color=#00E676, text_size=sz, text_halign=text.align_right, bgcolor=color.new(#2D2D5E, 0))
 
 // ─────────────────────────────────────────────────────────────────────────────
 // END
