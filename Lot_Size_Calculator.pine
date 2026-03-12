@@ -82,14 +82,16 @@ profit_total = profit_tp1 + profit_tp2
 // VISUAL — Controlled-width boxes + labels (only on last bar)
 // ─────────────────────────────────────────────────────────────────────────────
 
-var box   bx_risk = na
-var box   bx_tp1  = na
-var box   bx_tp2  = na
+var box   bx_risk  = na
+var box   bx_tp1   = na
+var box   bx_tp2   = na
 var label lb_entry = na
 var label lb_sl    = na
 var label lb_tp1   = na
 var label lb_tp2   = na
 var label lb_be    = na
+var label lb_lots  = na  // Large lot size callout
+var label lb_pips  = na  // Pip count in SL zone
 
 if barstate.islast
     // Clean previous
@@ -101,6 +103,8 @@ if barstate.islast
     label.delete(lb_tp1)
     label.delete(lb_tp2)
     label.delete(lb_be)
+    label.delete(lb_lots)
+    label.delete(lb_pips)
 
     int box_left   = bar_index - 3
     int box_right  = bar_index + i_zone_bars
@@ -133,12 +137,19 @@ if barstate.islast
     lb_entry := label.new(lbl_x, entryPrice,
          dir_label + " " + syminfo.ticker +
          "\n" + str.tostring(entryPrice, price_fmt) +
-         "\n" + str.tostring(lot_size, "#.##") + " lotes" +
          "\n-$" + str.tostring(risk_usd, "#.##") + " (" + str.tostring(i_risk_pct, "#.#") + "%)",
          color=color.new(color.black, 10), textcolor=color.white,
          style=label.style_label_left, size=lbl_sz)
 
-    // SL
+    // LOT SIZE — large prominent callout in center of entry zone
+    float lots_y = (entryPrice + (is_long ? stopPrice : tp1_price)) / 2.0
+    int lots_x   = math.round((box_left + box_right) / 2)
+    lb_lots := label.new(lots_x, entryPrice,
+         str.tostring(lot_size, "#.##") + " lotes",
+         color=color.new(color.black, 15), textcolor=#FFD600,
+         style=label.style_label_center, size=size.large)
+
+    // SL label + pip count in zone center
     lb_sl := label.new(lbl_x, stopPrice,
          "SL " + str.tostring(sl_pips, "#.#") + "p" +
          "\n" + str.tostring(stopPrice, price_fmt) +
@@ -146,6 +157,13 @@ if barstate.islast
          color=color.new(i_sl_color, 20), textcolor=color.white,
          style=is_long ? label.style_label_upper_left : label.style_label_lower_left,
          size=lbl_sz)
+
+    // PIP COUNT — visible inside SL zone
+    float pip_y = (entryPrice + stopPrice) / 2.0
+    lb_pips := label.new(lots_x, pip_y,
+         str.tostring(sl_pips, "#.#") + " pips",
+         color=color.new(color.black, 100), textcolor=color.new(i_sl_color, 0),
+         style=label.style_none, size=lbl_sz)
 
     // TP1 — left side
     lb_tp1 := label.new(box_left, tp1_price,
