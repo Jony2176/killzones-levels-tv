@@ -19,8 +19,8 @@ indicator("Risk & Lot Calculator", overlay=true, max_lines_count=500, max_labels
 i_direction   = input.string("Long", "Dirección", options=["Long", "Short"], group="📐 Trade Setup")
 i_entry_price = input.float(0.0, "Precio de Entrada (0 = precio actual)", step=0.00001, group="📐 Trade Setup", tooltip="Dejá en 0 para usar el precio de cierre actual")
 i_sl_pips     = input.float(10.0, "Stop Loss (pips)", minval=0.1, step=0.5, group="📐 Trade Setup")
-i_account     = input.float(10000.0, "Tamaño de Cuenta (USD)", minval=100.0, step=100.0, group="📐 Trade Setup")
-i_risk_pct    = input.float(1.0, "Riesgo (% de cuenta)", minval=0.1, maxval=10.0, step=0.5, group="📐 Trade Setup", tooltip="Valores comunes: 0.5%, 1%, 1.5%, 2%")
+i_account     = input.float(10000.0, "Balance de Cuenta (USD)", minval=100.0, step=1000.0, group="📐 Trade Setup", tooltip="Balance actual de tu cuenta de fondeo. Ej: 5000, 10000, 25000, 50000, 100000, 200000")
+i_risk_pct    = input.float(1.0, "Riesgo (% del balance)", minval=0.1, maxval=10.0, step=0.5, group="📐 Trade Setup", tooltip="Porcentaje del balance a arriesgar. Valores comunes: 0.5%, 1%, 1.5%, 2%")
 
 // ─────────────────────────────────────────────────────────────────────────────
 // INPUTS — Risk/Reward & Partials
