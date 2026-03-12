@@ -16,8 +16,14 @@ indicator("Risk & Lot Calculator", overlay=true, max_lines_count=500, max_labels
 // INPUTS — Trade Parameters (Entry & SL are draggable on chart!)
 // ─────────────────────────────────────────────────────────────────────────────
 
-i_entry_price = input.price(defval=0, title="📍 Precio de Entrada", confirm=true, group="📐 Trade Setup")
-i_sl_price    = input.price(defval=0, title="🛑 Stop Loss", confirm=true, group="📐 Trade Setup")
+// Dirección del trade
+i_direction    = input.string("Long", "Dirección", options=["Long", "Short"], group="📐 Trade Setup")
+
+// Stop Loss en pips — el único dato que siempre ingresás manualmente
+i_sl_pips      = input.float(10.0, "Stop Loss (pips)", minval=0.1, step=0.5, group="� Trade Setup", tooltip="Ingresá tus pips de SL. La entrada usa el precio actual automáticamente.")
+
+// Precio de entrada opcional (0 = usa el precio de cierre actual)
+i_entry_manual = input.float(0.0, "Precio de Entrada (0 = actual)", step=0.00001, group="📐 Trade Setup", tooltip="Dejá en 0 para usar el precio actual del chart. Útil para órdenes pendientes.")
 i_account     = input.float(10000.0, "Balance de Cuenta (USD)", minval=100.0, step=1000.0, group="📐 Trade Setup", tooltip="Balance actual de tu cuenta de fondeo. Ej: 5000, 10000, 25000, 50000, 100000, 200000")
 i_risk_pct    = input.float(1.0, "Riesgo (% del balance)", minval=0.1, maxval=10.0, step=0.5, group="📐 Trade Setup", tooltip="Porcentaje del balance a arriesgar. Valores comunes: 0.5%, 1%, 1.5%, 2%")
 
@@ -36,7 +42,7 @@ i_partial_pct  = input.float(80.0, "% a cerrar en TP1", minval=10.0, maxval=100.
 i_show_lines   = input.bool(true, "Mostrar líneas SL/TP en chart", group="🎨 Visual")
 i_show_boxes   = input.bool(true, "Mostrar zonas de riesgo/ganancia", group="🎨 Visual")
 i_show_table   = input.bool(true, "Mostrar tabla resumen", group="🎨 Visual")
-i_table_pos    = input.string("Top Left", "Posición de tabla", options=["Top Right", "Top Left", "Bottom Right", "Bottom Left", "Middle Right", "Middle Left"], group="🎨 Visual")
+i_table_pos    = input.string("Bottom Left", "Posición de tabla", options=["Top Right", "Top Left", "Bottom Right", "Bottom Left", "Middle Right", "Middle Left"], group="🎨 Visual")
 i_sl_color     = input.color(#FF1744, "Color SL", group="🎨 Visual")
 i_entry_color  = input.color(#B0BEC5, "Color Entrada", group="🎨 Visual")
 i_tp1_color    = input.color(#00E676, "Color TP1", group="🎨 Visual")
@@ -66,22 +72,22 @@ pair_name   = syminfo.ticker
 // ─────────────────────────────────────────────────────────────────────────────
 
 // Resolve entry price (use close if not set)
-entry_price = i_entry_price > 0 ? i_entry_price : close
+entry_price = i_entry_manual > 0 ? i_entry_manual : close
 
-// Resolve SL price (default: 10 pips below entry)
-sl_price    = i_sl_price > 0 ? i_sl_price : entry_price - 10 * pip_size
-
-// Auto-detect direction from SL position
-is_long    = sl_price < entry_price
+// Direction from input
+is_long    = i_direction == "Long"
 dir_mult   = is_long ? 1.0 : -1.0
 
-// Calculate SL distance in pips
-sl_pips    = math.abs(entry_price - sl_price) / pip_size
+// SL price derived from entry + pips
+sl_price   = entry_price - dir_mult * i_sl_pips * pip_size
+
+// SL in pips (direct from input)
+sl_pips    = i_sl_pips
 
 // Risk in USD from account percentage
 risk_usd   = i_account * (i_risk_pct / 100.0)
 
-// Lot size calculation: Risk / (SL_pips × pip_value_per_lot)
+// Lot size calculation: Risk / (SL_pips x pip_value_per_lot)
 lot_size   = sl_pips > 0 ? risk_usd / (sl_pips * pip_value) : 0.0
 
 // TP prices based on SL distance × ratio
@@ -233,7 +239,7 @@ if i_show_table and barstate.islast
     color lbl_clr  = color.new(#8888AA, 0)
     color val_clr  = color.new(color.white, 0)
     color sec_clr  = color.new(#4444AA, 30)
-    string sz      = size.small
+    string sz      = size.tiny
     string dir_text = is_long ? "▲ LONG" : "▼ SHORT"
     color dir_clr   = is_long ? #00E676 : #FF1744
 
