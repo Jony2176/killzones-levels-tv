@@ -109,17 +109,17 @@ if barstate.islast
         float risk_top = is_long ? entryPrice : stopPrice
         float risk_bot = is_long ? stopPrice  : entryPrice
         bx_risk := box.new(box_left, risk_top, box_right, risk_bot,
-             border_color=color.new(i_sl_color, 80), bgcolor=color.new(i_sl_color, 88), border_width=0)
+             border_color=color.new(i_sl_color, 60), bgcolor=color.new(i_sl_color, 70), border_width=0)
 
         float tp1_top = is_long ? tp1_price : entryPrice
         float tp1_bot = is_long ? entryPrice : tp1_price
         bx_tp1 := box.new(box_left, tp1_top, box_right, tp1_bot,
-             border_color=color.new(i_tp1_color, 85), bgcolor=color.new(i_tp1_color, 90), border_width=0)
+             border_color=color.new(i_tp1_color, 60), bgcolor=color.new(i_tp1_color, 70), border_width=0)
 
         float tp2_top = is_long ? tp2_price : tp1_price
         float tp2_bot = is_long ? tp1_price : tp2_price
         bx_tp2 := box.new(box_left, tp2_top, box_right, tp2_bot,
-             border_color=color.new(i_tp2_color, 85), bgcolor=color.new(i_tp2_color, 92), border_width=0)
+             border_color=color.new(i_tp2_color, 60), bgcolor=color.new(i_tp2_color, 70), border_width=0)
 
     // ── Labels ──
     string dir_label = is_long ? "▲ LONG" : "▼ SHORT"
