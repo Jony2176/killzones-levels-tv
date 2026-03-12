@@ -43,6 +43,7 @@ i_show_lines   = input.bool(true, "Mostrar líneas SL/TP en chart", group="🎨 
 i_show_boxes   = input.bool(true, "Mostrar zonas de riesgo/ganancia", group="🎨 Visual")
 i_show_table   = input.bool(true, "Mostrar tabla resumen", group="🎨 Visual")
 i_table_pos    = input.string("Bottom Right", "Posición de tabla", options=["Top Right", "Top Left", "Bottom Right", "Bottom Left", "Middle Right", "Middle Left"], group="🎨 Visual")
+i_table_size   = input.string("Small", "Texto tabla (Tiny=mobile)", options=["Tiny", "Small", "Normal"], group="🎨 Visual")
 i_sl_color     = input.color(#FF1744, "Color SL", group="🎨 Visual")
 i_entry_color  = input.color(#B0BEC5, "Color Entrada", group="🎨 Visual")
 i_tp1_color    = input.color(#00E676, "Color TP1", group="🎨 Visual")
@@ -239,7 +240,7 @@ if i_show_table and barstate.islast
     color lbl_clr  = color.new(#8888AA, 0)
     color val_clr  = color.new(color.white, 0)
     color sec_clr  = color.new(#4444AA, 30)
-    string sz      = size.small
+    string sz = i_table_size == "Tiny" ? size.tiny : i_table_size == "Normal" ? size.normal : size.small
     string dir_text = is_long ? "▲ LONG" : "▼ SHORT"
     color dir_clr   = is_long ? #00E676 : #FF1744
 
