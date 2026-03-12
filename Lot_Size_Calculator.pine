@@ -124,49 +124,40 @@ if barstate.islast
         bx_tp2 := box.new(box_left, tp2_top, box_right, tp2_bot,
              border_color=color.new(i_tp2_color, 60), bgcolor=color.new(i_tp2_color, 70), border_width=0)
 
-    // ── Labels ──
+    // ── Labels ── Clean, compact, no emoji unicode issues
     string lbl_sz = i_label_size == "Tiny" ? size.tiny : i_label_size == "Small" ? size.small : i_label_size == "Large" ? size.large : size.normal
-    string dir_label = is_long ? "▲ LONG" : "▼ SHORT"
+    string dir_label = is_long ? "LONG" : "SHORT"
     float eff_rr = risk_usd > 0 ? profit_total / risk_usd : 0.0
 
-    // Entry: direction + price + lots + risk
+    // Entry: left side — direction, lot size, risk
     lb_entry := label.new(lbl_x, entryPrice,
-         dir_label + " · " + syminfo.ticker +
-         "\nEntrada: " + str.tostring(entryPrice, price_fmt) +
-         "\nLotaje:  " + str.tostring(lot_size, "#.##") + " lotes" +
-         "\nRiesgo:  $" + str.tostring(risk_usd, "#.##") + " (" + str.tostring(i_risk_pct, "#.##") + "%)",
+         dir_label + " " + syminfo.ticker + "  |  " + str.tostring(lot_size, "#.##") + " lotes" +
+         "\n" + str.tostring(entryPrice, price_fmt) + "  |  Riesgo: $" + str.tostring(risk_usd, "#.##") + " (" + str.tostring(i_risk_pct, "#.##") + "%)",
          color=color.new(color.black, 10), textcolor=color.white,
          style=label.style_label_left, size=lbl_sz)
 
-    // SL: price + pips + loss
+    // SL: compact 2 lines
     lb_sl := label.new(lbl_x, stopPrice,
-         "⛔ STOP LOSS" +
-         "\n" + str.tostring(stopPrice, price_fmt) + " | -" + str.tostring(sl_pips, "#.#") + " pips" +
-         "\nPérdida: -$" + str.tostring(risk_usd, "#.##"),
+         "SL: " + str.tostring(stopPrice, price_fmt) + "  |  " + str.tostring(sl_pips, "#.#") + " pips" +
+         "\nPerdida: -$" + str.tostring(risk_usd, "#.##"),
          color=color.new(i_sl_color, 20), textcolor=color.white,
          style=is_long ? label.style_label_upper_left : label.style_label_lower_left,
          size=lbl_sz)
 
-    // TP1: price + pips + partial lots + profit + BE instruction
-    lb_tp1 := label.new(lbl_x, tp1_price,
-         "\u2705 TP1  (1:" + str.tostring(real_rr1, "#.##") + ")" +
-         "\n" + str.tostring(tp1_price, price_fmt) + " | +" + str.tostring(pips_tp1, "#.#") + " pips" +
-         "\nCerrar: " + str.tostring(lots_tp1, "#.##") + " lotes (" + str.tostring(i_partial_pct, "#") + "%)" +
-         "\nGanancia: +$" + str.tostring(profit_tp1, "#.##") +
-         "\n→ Mover SL a BE: " + str.tostring(entryPrice, price_fmt),
+    // TP1: on left side of zone
+    lb_tp1 := label.new(box_left, tp1_price,
+         "TP1 (1:" + str.tostring(real_rr1, "#.#") + ")  " + str.tostring(tp1_price, price_fmt) + "  |  +" + str.tostring(pips_tp1, "#.#") + "p" +
+         "\nCerrar " + str.tostring(lots_tp1, "#.##") + " (" + str.tostring(i_partial_pct, "#") + "%)  +$" + str.tostring(profit_tp1, "#.##") + "  |  SL a BE",
          color=color.new(i_tp1_color, 20), textcolor=color.white,
-         style=is_long ? label.style_label_lower_left : label.style_label_upper_left,
+         style=is_long ? label.style_label_lower_right : label.style_label_upper_right,
          size=lbl_sz)
 
-    // TP2: pushed 30 bars right of TP1 to avoid overlap
-    lb_tp2 := label.new(lbl_x_tp2, tp2_price,
-         "🎯 TP2  (1:" + str.tostring(real_rr2, "#.##") + ")" +
-         "\n" + str.tostring(tp2_price, price_fmt) + " | +" + str.tostring(pips_tp2, "#.#") + " pips" +
-         "\nMantener: " + str.tostring(lots_tp2, "#.##") + " lotes (" + str.tostring(100 - i_partial_pct, "#") + "%)" +
-         "\nGanancia: +$" + str.tostring(profit_tp2, "#.##") +
-         "\nTotal: +$" + str.tostring(profit_total, "#.##") + " · R:R " + str.tostring(eff_rr, "#.##"),
+    // TP2: on right side of zone — separated from TP1
+    lb_tp2 := label.new(lbl_x, tp2_price,
+         "TP2 (1:" + str.tostring(real_rr2, "#.#") + ")  " + str.tostring(tp2_price, price_fmt) + "  |  +" + str.tostring(pips_tp2, "#.#") + "p" +
+         "\nMantener " + str.tostring(lots_tp2, "#.##") + " (" + str.tostring(100 - i_partial_pct, "#") + "%)  +$" + str.tostring(profit_tp2, "#.##") + "  |  Total: +$" + str.tostring(profit_total, "#.##") + "  R:R " + str.tostring(eff_rr, "#.##"),
          color=color.new(i_tp2_color, 20), textcolor=color.white,
-         style=is_long ? label.style_label_upper_left : label.style_label_lower_left,
+         style=is_long ? label.style_label_lower_left : label.style_label_upper_left,
          size=lbl_sz)
 
 // ─────────────────────────────────────────────────────────────────────────────
