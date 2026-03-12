@@ -133,7 +133,7 @@ if barstate.islast
          "\n" + str.tostring(entryPrice, price_fmt) +
          "\n" + str.tostring(lot_size, "#.##") + " lotes" +
          "\n-$" + str.tostring(risk_usd, "#.##") + " (" + str.tostring(i_risk_pct, "#.#") + "%)",
-         color=color.new(color.black, 10), textcolor=color.white,
+         color=color.new(color.black, 10), textcolor=#FFD600,
          style=label.style_label_left, size=lbl_sz)
 
     // SL
@@ -152,7 +152,7 @@ if barstate.islast
          "\nCerrar " + str.tostring(lots_tp1, "#.##") +
          "\n+$" + str.tostring(profit_tp1, "#.##") +
          "\nSL a BE",
-         color=#1B5E20, textcolor=color.white,
+         color=#1B5E20, textcolor=#FFD600,
          style=is_long ? label.style_label_lower_right : label.style_label_upper_right,
          size=lbl_sz)
 
