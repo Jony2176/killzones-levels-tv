@@ -35,6 +35,7 @@ i_partial_pct = input.float(80.0, "% a cerrar en TP1", minval=10.0, maxval=100.0
 
 i_show_zones  = input.bool(true,  "Mostrar zonas coloreadas", group="🎨 Visual")
 i_zone_bars   = input.int(15,     "Ancho de zonas (barras)", minval=3, maxval=60, group="🎨 Visual")
+i_label_size  = input.string("Normal", "Tamaño texto labels", options=["Tiny", "Small", "Normal", "Large"], group="🎨 Visual")
 i_sl_color    = input.color(#FF1744, "Color SL",  group="🎨 Visual")
 i_tp1_color   = input.color(#00E676, "Color TP1", group="🎨 Visual")
 i_tp2_color   = input.color(#00B0FF, "Color TP2", group="🎨 Visual")
@@ -75,6 +76,7 @@ pips_tp1   = math.abs(tp1_price - entryPrice) / pip_size
 pips_tp2   = math.abs(tp2_price - entryPrice) / pip_size
 profit_tp1 = lots_tp1 * pips_tp1 * pip_value
 profit_tp2 = lots_tp2 * pips_tp2 * pip_value
+profit_total = profit_tp1 + profit_tp2
 
 // ─────────────────────────────────────────────────────────────────────────────
 // VISUAL — Controlled-width boxes + labels (only on last bar)
@@ -122,8 +124,8 @@ if barstate.islast
              border_color=color.new(i_tp2_color, 60), bgcolor=color.new(i_tp2_color, 70), border_width=0)
 
     // ── Labels ──
+    string lbl_sz = i_label_size == "Tiny" ? size.tiny : i_label_size == "Small" ? size.small : i_label_size == "Large" ? size.large : size.normal
     string dir_label = is_long ? "▲ LONG" : "▼ SHORT"
-    float profit_total = profit_tp1 + profit_tp2
     float eff_rr = risk_usd > 0 ? profit_total / risk_usd : 0.0
 
     // Entry: direction + price + lots + risk
@@ -133,7 +135,7 @@ if barstate.islast
          "\nLotaje:  " + str.tostring(lot_size, "#.##") + " lotes" +
          "\nRiesgo:  $" + str.tostring(risk_usd, "#.##") + " (" + str.tostring(i_risk_pct, "#.##") + "%)",
          color=color.new(color.black, 10), textcolor=color.white,
-         style=label.style_label_left, size=size.small)
+         style=label.style_label_left, size=lbl_sz)
 
     // SL: price + pips + loss
     lb_sl := label.new(lbl_x, stopPrice,
@@ -142,7 +144,7 @@ if barstate.islast
          "\nPérdida: -$" + str.tostring(risk_usd, "#.##"),
          color=color.new(i_sl_color, 20), textcolor=color.white,
          style=is_long ? label.style_label_upper_left : label.style_label_lower_left,
-         size=size.small)
+         size=lbl_sz)
 
     // TP1: price + pips + partial lots + profit + BE instruction
     lb_tp1 := label.new(lbl_x, tp1_price,
@@ -153,7 +155,7 @@ if barstate.islast
          "\n→ Mover SL a BE: " + str.tostring(entryPrice, price_fmt),
          color=color.new(i_tp1_color, 20), textcolor=color.white,
          style=is_long ? label.style_label_lower_left : label.style_label_upper_left,
-         size=size.small)
+         size=lbl_sz)
 
     // TP2: price + pips + remaining lots + profit + total summary
     lb_tp2 := label.new(lbl_x, tp2_price,
@@ -164,7 +166,7 @@ if barstate.islast
          "\nTotal: +$" + str.tostring(profit_total, "#.##") + " · R:R " + str.tostring(eff_rr, "#.##"),
          color=color.new(i_tp2_color, 20), textcolor=color.white,
          style=is_long ? label.style_label_lower_left : label.style_label_upper_left,
-         size=size.small)
+         size=lbl_sz)
 
 // ─────────────────────────────────────────────────────────────────────────────
 // END
