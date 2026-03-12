@@ -57,3 +57,38 @@ En el panel de settings del indicador, podés:
 - **M1, M5, M15** — Ideal para ver las sesiones con detalle
 - **H1** — Se ven las sesiones como bloques compactos
 - **H4+** — Las sesiones pueden no ser visibles (pocas barras por sesión)
+
+---
+
+# Risk & Lot Calculator — EURUSD
+
+Indicador de cálculo automático de lotaje basado en riesgo porcentual, con gestión de parciales y targets visuales.
+
+## Features
+
+- **Cálculo de lotaje** automático basado en % de cuenta y pips de SL
+- **Líneas visuales** para SL, Entrada, TP1 y TP2 directamente en el chart
+- **Gestión de parciales**: cerrar 80% en TP1 (1:2) y dejar 20% correr hasta TP2 (1:3)
+- **Recordatorio de Breakeven**: mover SL a precio de entrada al alcanzar TP1
+- **Zonas coloreadas**: rojo (riesgo), verde (TP1), azul (TP2)
+- **Tabla resumen** con todos los datos del trade
+
+## Inputs
+
+| Input | Default | Descripción |
+|-------|---------|-------------|
+| Dirección | Long | Long o Short |
+| Precio de Entrada | 0 (= actual) | Precio de entrada al trade |
+| Stop Loss (pips) | 10 | Distancia del SL |
+| Tamaño de Cuenta | $10,000 | Para calcular riesgo |
+| Riesgo (%) | 1% | Porcentaje de la cuenta (0.5%, 1%, 1.5%, 2%) |
+| Ratio TP1 | 2.0 | Primer target R:R |
+| Ratio TP2 | 3.0 | Segundo target R:R |
+| % Parcial TP1 | 80% | Porcentaje a cerrar en TP1 |
+
+## Cómo instalar
+
+1. Abrí TradingView → Pine Script Editor
+2. Pegá el contenido de `Lot_Size_Calculator.pine`
+3. Hacé clic en **Add to chart**
+4. Configurá tu % de riesgo, SL en pips y dirección
