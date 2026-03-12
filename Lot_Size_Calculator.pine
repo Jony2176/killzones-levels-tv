@@ -152,7 +152,7 @@ if barstate.islast
          "\nCerrar " + str.tostring(lots_tp1, "#.##") +
          "\n+$" + str.tostring(profit_tp1, "#.##") +
          "\nSL a BE",
-         color=#2E7D32, textcolor=color.white,
+         color=color.new(color.green, 40), textcolor=color.white,
          style=is_long ? label.style_label_lower_right : label.style_label_upper_right,
          size=lbl_sz)
 
