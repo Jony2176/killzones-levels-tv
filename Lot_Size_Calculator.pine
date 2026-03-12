@@ -16,8 +16,8 @@ indicator("Risk & Lot Calculator", overlay=true, max_lines_count=500, max_labels
 // INPUTS — Trade Parameters (Entry & SL are draggable on chart!)
 // ─────────────────────────────────────────────────────────────────────────────
 
-i_entry_price = input.price(defval=0, title="📍 Precio de Entrada", confirm=false, group="📐 Trade Setup")
-i_sl_price    = input.price(defval=0, title="🛑 Stop Loss", confirm=false, group="📐 Trade Setup")
+i_entry_price = input.price(defval=0, title="📍 Precio de Entrada", confirm=true, group="📐 Trade Setup")
+i_sl_price    = input.price(defval=0, title="🛑 Stop Loss", confirm=true, group="📐 Trade Setup")
 i_account     = input.float(10000.0, "Balance de Cuenta (USD)", minval=100.0, step=1000.0, group="📐 Trade Setup", tooltip="Balance actual de tu cuenta de fondeo. Ej: 5000, 10000, 25000, 50000, 100000, 200000")
 i_risk_pct    = input.float(1.0, "Riesgo (% del balance)", minval=0.1, maxval=10.0, step=0.5, group="📐 Trade Setup", tooltip="Porcentaje del balance a arriesgar. Valores comunes: 0.5%, 1%, 1.5%, 2%")
 
