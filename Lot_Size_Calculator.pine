@@ -87,8 +87,8 @@ sl_pips    = i_sl_pips
 // Risk in USD from account percentage
 risk_usd   = i_account * (i_risk_pct / 100.0)
 
-// Lot size calculation: Risk / (SL_pips x pip_value_per_lot)
-lot_size   = sl_pips > 0 ? risk_usd / (sl_pips * pip_value) : 0.0
+// Lot size: always floor to 1 decimal (never risk more than intended)
+lot_size   = sl_pips > 0 ? math.floor(risk_usd / (sl_pips * pip_value) * 10) / 10 : 0.0
 
 // TP prices based on SL distance × ratio
 tp1_price  = entry_price + dir_mult * sl_pips * i_rr_tp1 * pip_size
