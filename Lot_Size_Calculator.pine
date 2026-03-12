@@ -102,9 +102,10 @@ if barstate.islast
     label.delete(lb_tp2)
     label.delete(lb_be)
 
-    int box_left  = bar_index - 3
-    int box_right = bar_index + i_zone_bars
-    int lbl_x     = bar_index + i_zone_bars + 1
+    int box_left   = bar_index - 3
+    int box_right  = bar_index + i_zone_bars
+    int lbl_x      = bar_index + i_zone_bars + 1
+    int lbl_x_tp2  = lbl_x + 30  // TP2 offset right to avoid overlap with TP1
 
     // ── Colored zones ──
     if i_show_zones
@@ -157,9 +158,8 @@ if barstate.islast
          style=is_long ? label.style_label_lower_left : label.style_label_upper_left,
          size=lbl_sz)
 
-    // TP2: price + pips + remaining lots + profit + total summary
-    // Hangs UP for Long (above TP2 into empty space), DOWN for Short — avoids overlap with TP1
-    lb_tp2 := label.new(lbl_x, tp2_price,
+    // TP2: pushed 30 bars right of TP1 to avoid overlap
+    lb_tp2 := label.new(lbl_x_tp2, tp2_price,
          "🎯 TP2  (1:" + str.tostring(real_rr2, "#.##") + ")" +
          "\n" + str.tostring(tp2_price, price_fmt) + " | +" + str.tostring(pips_tp2, "#.#") + " pips" +
          "\nMantener: " + str.tostring(lots_tp2, "#.##") + " lotes (" + str.tostring(100 - i_partial_pct, "#") + "%)" +
