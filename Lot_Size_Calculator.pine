@@ -16,7 +16,8 @@ indicator("Risk & Lot Calculator", overlay=true, max_lines_count=500, max_labels
 // INPUTS
 // ─────────────────────────────────────────────────────────────────────────────
 
-// Drag these two levels on the chart after adding the indicator
+// Drag these levels on the chart after adding the indicator
+entryTime  = input.time(0, title="🕒 Tiempo de Entrada", confirm=true, group="📐 Trade Setup", tooltip="Fija la vela de inicio de tu trade")
 entryPrice = input.price(0, title="📍 Entry Price", confirm=true, group="📐 Trade Setup")
 stopPrice  = input.price(0, title="🛑 Stop Loss",   confirm=true, group="📐 Trade Setup")
 
@@ -79,6 +80,48 @@ profit_tp2 = lots_tp2 * pips_tp2 * pip_value
 profit_total = profit_tp1 + profit_tp2
 
 // ─────────────────────────────────────────────────────────────────────────────
+// TRADE TRACKING (Start & End)
+// ─────────────────────────────────────────────────────────────────────────────
+
+var int start_bar = na
+var int end_bar = na
+var bool trade_active = false
+var bool hit_tp1 = false
+
+if entryTime > 0 and time >= entryTime and na(start_bar)
+    start_bar := bar_index
+    trade_active := true
+
+if trade_active
+    float curr_high = high
+    float curr_low  = low
+    
+    bool hit_sl  = false
+    bool hit_tp2 = false
+    bool hit_be  = false
+    
+    if not hit_tp1
+        // Antes de llegar a TP1, el precio puede tocar SL o TP1
+        hit_sl := is_long ? (curr_low <= stopPrice) : (curr_high >= stopPrice)
+        
+        // Si no tocó SL, comprobamos si tocó TP1
+        if not hit_sl
+            hit_tp1 := is_long ? (curr_high >= tp1_price) : (curr_low <= tp1_price)
+            // Si tocó TP1 en esta misma vela, quizás también llegó al TP2
+            if hit_tp1
+                hit_tp2 := is_long ? (curr_high >= tp2_price) : (curr_low <= tp2_price)
+                
+    else
+        // Ya habíamos tocado TP1 antes. Ahora el SL está en BE (entryPrice).
+        // Chequeamos si toca BE o si llega a TP2
+        hit_be  := is_long ? (curr_low <= entryPrice) : (curr_high >= entryPrice)
+        hit_tp2 := is_long ? (curr_high >= tp2_price) : (curr_low <= tp2_price)
+        
+    if hit_sl or hit_tp2 or hit_be
+        end_bar := bar_index
+        trade_active := false
+
+// ─────────────────────────────────────────────────────────────────────────────
 // VISUAL — Controlled-width boxes + labels (only on last bar)
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -100,9 +143,9 @@ if barstate.islast
     label.delete(lb_tp1)
     label.delete(lb_tp2)
 
-    int box_left   = bar_index - 3
-    int box_right  = bar_index + i_zone_bars
-    int lbl_x      = bar_index + i_zone_bars + 1
+    int box_left   = entryTime > 0 and not na(start_bar) ? start_bar : bar_index - 3
+    int box_right  = entryTime > 0 and not na(end_bar) ? end_bar : bar_index + i_zone_bars
+    int lbl_x      = box_right + 1
     int lbl_x_tp2  = lbl_x + 30  // TP2 offset right to avoid overlap with TP1
 
     // ── Colored zones ──
