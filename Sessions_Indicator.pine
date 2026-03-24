@@ -60,20 +60,38 @@ extend_bars       = input.int(20, "Extend Lines (bars)", minval=0, maxval=100, g
 
 // IANA timezone names auto-handle DST:
 // • Europe/London    → UTC+0 (winter) / UTC+1 (summer BST)
-// • America/New_York → UTC-5 (winter) / UTC-4 (summer EDT)
+// • America/New_York → UTC-5 (winter EST) / UTC-4 (summer EDT)
 // • Asia/Tokyo       → UTC+9 (no DST)
 //
+// Asia session is anchored to UTC-3, which has no DST. The 1-hour shift
+// happens because NY DST changes the market reference point:
+//   NY summer (EDT, UTC-4) → Asia starts 21:00 UTC-3 → 0900 Tokyo
+//   NY winter (EST, UTC-5) → Asia starts 20:00 UTC-3 → 0800 Tokyo
+//
 // NOTE: On TF < 5min, boxes may end 1-2 min early (Pine Script limitation).
+
+// DST Detection — America/New_York
+// EDT (summer) = UTC-4 → hour diff mod 24 = 20
+// EST (winter) = UTC-5 → hour diff mod 24 = 19
+_ny_h     = hour(time, "America/New_York")
+_utc_h    = hour(time, "UTC")
+is_ny_dst = (_ny_h - _utc_h + 24) % 24 == 20
 
 // Full sessions (market hours)
 is_full_london = not na(time(timeframe.period, "0800-1200", "Europe/London"))
 is_full_ny     = not na(time(timeframe.period, "0800-1300", "America/New_York"))
-is_full_asia   = not na(time(timeframe.period, "0800-1400", "Asia/Tokyo"))
+// Asia: auto-adjusts with NY DST (no manual change needed)
+is_full_asia   = is_ny_dst ?
+     not na(time(timeframe.period, "0900-1500", "Asia/Tokyo")) :
+     not na(time(timeframe.period, "0800-1400", "Asia/Tokyo"))
 
 // Killzones (user's trading windows within each session)
 is_kz_london = not na(time(timeframe.period, "0800-1000", "Europe/London"))
 is_kz_ny     = not na(time(timeframe.period, "0800-1030", "America/New_York"))
-is_kz_asia   = not na(time(timeframe.period, "0800-1030", "Asia/Tokyo"))
+// Asia KZ: auto-adjusts with NY DST (no manual change needed)
+is_kz_asia   = is_ny_dst ?
+     not na(time(timeframe.period, "0900-1130", "Asia/Tokyo")) :
+     not na(time(timeframe.period, "0800-1030", "Asia/Tokyo"))
 
 // Session start/end detection
 full_london_start = is_full_london and not is_full_london[1]
