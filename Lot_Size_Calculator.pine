@@ -40,6 +40,7 @@ i_label_size  = input.string("Normal", "Tamaño texto labels", options=["Tiny", 
 i_sl_color    = input.color(#FF1744, "Color SL",  group="🎨 Visual")
 i_tp1_color   = input.color(#00E676, "Color TP1", group="🎨 Visual")
 i_tp2_color   = input.color(#00B0FF, "Color TP2", group="🎨 Visual")
+i_lot_color   = input.color(#FFD600, "Color Lotaje", group="🎨 Visual", tooltip="Color del badge de lotaje")
 
 // ─────────────────────────────────────────────────────────────────────────────
 // PAIR AUTO-DETECTION
@@ -135,10 +136,12 @@ if trade_active
 var box   bx_risk  = na
 var box   bx_tp1   = na
 var box   bx_tp2   = na
-var label lb_entry = na
-var label lb_sl    = na
-var label lb_tp1   = na
-var label lb_tp2   = na
+var label lb_entry    = na
+var label lb_sl      = na
+var label lb_tp1     = na
+var label lb_tp2     = na
+var label lb_lot_e   = na
+var label lb_lot_tp1 = na
 
 if barstate.islast
     // Clean previous
@@ -149,6 +152,8 @@ if barstate.islast
     label.delete(lb_sl)
     label.delete(lb_tp1)
     label.delete(lb_tp2)
+    label.delete(lb_lot_e)
+    label.delete(lb_lot_tp1)
 
     int box_left   = entryTime > 0 and not na(start_bar) ? start_bar : bar_index - 3
     int box_right  = entryTime > 0 and not na(end_bar) ? end_bar : bar_index + i_zone_bars
@@ -177,14 +182,19 @@ if barstate.islast
     string dir_label = is_long ? "LONG" : "SHORT"
     float eff_rr = risk_usd > 0 ? profit_total / risk_usd : 0.0
 
-    // Entry
+    // Entry — cuerpo arriba-derecha del anchor (style_label_lower_left)
     lb_entry := label.new(lbl_x, entry_p,
          dir_label + " " + syminfo.ticker +
          "\n" + str.tostring(entry_p, price_fmt) +
-         "\n" + str.tostring(lot_size, "#.##") + " lotes" +
          "\n-$" + str.tostring(risk_usd, "#.##") + " (" + str.tostring(i_risk_pct, "#.#") + "%)",
          color=color.new(color.black, 10), textcolor=color.white,
-         style=label.style_label_left, size=lbl_sz)
+         style=label.style_label_lower_left, size=lbl_sz)
+
+    // Lot badge — Entry: mismo anchor, cuerpo abajo-derecha (opuesto al entry label = sin overlap)
+    lb_lot_e := label.new(lbl_x, entry_p,
+         "▶ " + str.tostring(lot_size, "#.##") + " lotes",
+         color=i_lot_color, textcolor=color.black,
+         style=label.style_label_upper_left, size=lbl_sz)
 
     // SL
     lb_sl := label.new(lbl_x, stop_p,
@@ -199,11 +209,17 @@ if barstate.islast
     lb_tp1 := label.new(box_left, tp1_price,
          "TP1 (1:" + str.tostring(real_rr1, "#.#") + ")" +
          "\n" + str.tostring(tp1_price, price_fmt) +
-         "\nCerrar " + str.tostring(lots_tp1, "#.##") +
          "\n+$" + str.tostring(profit_tp1, "#.##") +
          "\nSL a BE",
          color=color.new(color.green, 40), textcolor=color.white,
          style=is_long ? label.style_label_lower_right : label.style_label_upper_right,
+         size=lbl_sz)
+
+    // Lot badge — TP1 (cerrar parcial) — mismo lado que label TP1, apilado verticalmente
+    lb_lot_tp1 := label.new(box_left, tp1_price,
+         "▶ Cerrar " + str.tostring(lots_tp1, "#.##"),
+         color=i_lot_color, textcolor=color.black,
+         style=is_long ? label.style_label_upper_right : label.style_label_lower_right,
          size=lbl_sz)
 
     // TP2 — right side
