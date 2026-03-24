@@ -51,25 +51,32 @@ pip_size    = is_jpy_pair ? 0.01 : is_xau ? 0.10 : 0.0001
 pip_value   = is_jpy_pair ? (0.01 / close) * 100000.0 : 10.0
 price_fmt   = is_jpy_pair ? "#.###" : is_xau ? "#.##" : "#.#####"
 
+// ─── Redondeo por par: JPY → 3 dec, XAU → 2 dec, resto → 5 dec ──────────────
+price_step  = is_jpy_pair ? 0.001 : is_xau ? 0.01 : 0.00001
+entry_p     = math.round(entryPrice   / price_step) * price_step
+stop_p      = math.round(stopPrice    / price_step) * price_step
+tp1_p       = tp1_override > 0.0 ? math.round(tp1_override / price_step) * price_step : 0.0
+tp2_p       = tp2_override > 0.0 ? math.round(tp2_override / price_step) * price_step : 0.0
+
 // ─────────────────────────────────────────────────────────────────────────────
 // CORE CALCULATIONS
 // ─────────────────────────────────────────────────────────────────────────────
 
-is_long    = stopPrice < entryPrice
+is_long    = stop_p < entry_p
 dir_mult   = is_long ? 1.0 : -1.0
-sl_pips    = math.abs(entryPrice - stopPrice) / pip_size
+sl_pips    = math.abs(entry_p - stop_p) / pip_size
 risk_usd   = i_account * (i_risk_pct / 100.0)
 
 // Always floor to 1 decimal — never risk more than intended
 lot_size   = sl_pips > 0 ? math.floor(risk_usd / (sl_pips * pip_value) * 10) / 10 : 0.0
 
 // TP prices: use manual override if set, otherwise use ratio
-tp1_price  = tp1_override > 0 ? tp1_override : entryPrice + dir_mult * sl_pips * i_rr_tp1 * pip_size
-tp2_price  = tp2_override > 0 ? tp2_override : entryPrice + dir_mult * sl_pips * i_rr_tp2 * pip_size
+tp1_price  = tp1_p > 0 ? tp1_p : entry_p + dir_mult * sl_pips * i_rr_tp1 * pip_size
+tp2_price  = tp2_p > 0 ? tp2_p : entry_p + dir_mult * sl_pips * i_rr_tp2 * pip_size
 
 // Actual R:R derived from real prices (auto-updates when using manual TP)
-real_rr1   = sl_pips > 0 ? math.abs(tp1_price - entryPrice) / pip_size / sl_pips : i_rr_tp1
-real_rr2   = sl_pips > 0 ? math.abs(tp2_price - entryPrice) / pip_size / sl_pips : i_rr_tp2
+real_rr1   = sl_pips > 0 ? math.abs(tp1_price - entry_p) / pip_size / sl_pips : i_rr_tp1
+real_rr2   = sl_pips > 0 ? math.abs(tp2_price - entry_p) / pip_size / sl_pips : i_rr_tp2
 
 lots_tp1   = lot_size * (i_partial_pct / 100.0)
 lots_tp2   = lot_size * (1.0 - i_partial_pct / 100.0)
@@ -102,7 +109,7 @@ if trade_active
     
     if not hit_tp1
         // Antes de llegar a TP1, el precio puede tocar SL o TP1
-        hit_sl := is_long ? (curr_low <= stopPrice) : (curr_high >= stopPrice)
+        hit_sl := is_long ? (curr_low <= stop_p) : (curr_high >= stop_p)
         
         // Si no tocó SL, comprobamos si tocó TP1
         if not hit_sl
@@ -114,7 +121,7 @@ if trade_active
     else
         // Ya habíamos tocado TP1 antes. Ahora el SL está en BE (entryPrice).
         // Chequeamos si toca BE o si llega a TP2
-        hit_be  := is_long ? (curr_low <= entryPrice) : (curr_high >= entryPrice)
+        hit_be  := is_long ? (curr_low <= entry_p) : (curr_high >= entry_p)
         hit_tp2 := is_long ? (curr_high >= tp2_price) : (curr_low <= tp2_price)
         
     if hit_sl or hit_tp2 or hit_be
@@ -171,18 +178,18 @@ if barstate.islast
     float eff_rr = risk_usd > 0 ? profit_total / risk_usd : 0.0
 
     // Entry
-    lb_entry := label.new(lbl_x, entryPrice,
+    lb_entry := label.new(lbl_x, entry_p,
          dir_label + " " + syminfo.ticker +
-         "\n" + str.tostring(entryPrice, price_fmt) +
+         "\n" + str.tostring(entry_p, price_fmt) +
          "\n" + str.tostring(lot_size, "#.##") + " lotes" +
          "\n-$" + str.tostring(risk_usd, "#.##") + " (" + str.tostring(i_risk_pct, "#.#") + "%)",
          color=color.new(color.black, 10), textcolor=color.white,
          style=label.style_label_left, size=lbl_sz)
 
     // SL
-    lb_sl := label.new(lbl_x, stopPrice,
+    lb_sl := label.new(lbl_x, stop_p,
          "SL " + str.tostring(sl_pips, "#.#") + "p" +
-         "\n" + str.tostring(stopPrice, price_fmt) +
+         "\n" + str.tostring(stop_p, price_fmt) +
          "\n-$" + str.tostring(risk_usd, "#.##"),
          color=color.new(i_sl_color, 20), textcolor=color.white,
          style=is_long ? label.style_label_upper_left : label.style_label_lower_left,
